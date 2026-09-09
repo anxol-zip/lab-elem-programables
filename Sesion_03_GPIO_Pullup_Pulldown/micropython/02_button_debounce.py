@@ -4,15 +4,10 @@
 #  Angel Rugerio Jimenez #201720
 # =========================================================================
 #
-#  Circuito (Etapa A):   GP16 --- BOTON --- GND
-#
 #  PROBLEMA: un boton mecanico no cambia de estado limpiamente. Al cerrar,
 #  los contactos rebotan durante unos milisegundos y el pin entrega una
 #  rafaga de 1/0. Fisicamente hubo UNA presion, pero el programa podria
 #  contar varias.
-#
-#  SOLUCION (didactica): detectar el FLANCO de bajada (1 -> 0), esperar
-#  DEBOUNCE_MS y volver a leer. Si sigue en 0, el click es real.
 #
 #  WAIT FOR RELEASE: despues de aceptar el click esperamos a que el boton
 #  se suelte. Regla practica: 1 presion = 1 peticion, sin importar cuanto

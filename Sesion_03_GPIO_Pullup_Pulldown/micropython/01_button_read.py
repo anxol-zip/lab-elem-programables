@@ -4,8 +4,6 @@
 #  Angel Rugerio Jimenez #201720
 # =========================================================================
 #
-#  Circuito (Etapa A):   GP16 --- BOTON --- GND
-#
 #  Con PULL-UP INTERNO el pin queda amarrado a 3.3 V cuando nadie lo toca,
 #  asi que la lectura por defecto es 1. Al presionar, el boton conecta el
 #  pin directamente a GND y esa conexion "le gana" al resistor interno:

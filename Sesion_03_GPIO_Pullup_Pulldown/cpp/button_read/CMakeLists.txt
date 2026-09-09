@@ -1,10 +1,13 @@
-# Sesion 03 - Proyecto Pico SDK: button_read
+# Generated Cmake Pico project file
 
 cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Initialise pico_sdk from installed location
+# (note this can come from environment, CMake cache etc)
 
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
@@ -20,30 +23,42 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-
-# RP2350: este proyecto compila EXCLUSIVAMENTE para la Pico 2 W fisica.
-# La simulacion de este mismo codigo se corre en wokwi.com, que compila
-# su propio binario para RP2040 en la nube. Aqui no se simula nada.
 set(PICO_BOARD pico2_w CACHE STRING "Board type")
 
+# Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
 project(button_read C CXX ASM)
 
+# Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
+
+# Add executable. Default name is the project name, version 0.1
 
 add_executable(button_read button_read.c)
 
 pico_set_program_name(button_read "button_read")
-pico_set_program_version(button_read "1.0")
+pico_set_program_version(button_read "0.1")
 
-# Serial por USB y por UART: asi el monitor funciona tanto en Wokwi
-# como en la placa fisica sin recompilar.
-pico_enable_stdio_uart(button_read 1)
+# Salida estandar: USB CDC encendido para leer los printf con
+#   screen /dev/ttyACM0 115200
+# UART apagado: no hay nada cableado a los pines UART de la placa.
+pico_enable_stdio_uart(button_read 0)
 pico_enable_stdio_usb(button_read 1)
 
-target_link_libraries(button_read pico_stdlib)
+# Add the standard library to the build
+target_link_libraries(button_read
+        pico_stdlib)
 
-target_include_directories(button_read PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+# Add the standard include files to the build
+target_include_directories(button_read PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}
+)
+
+# Add any user requested libraries
+target_link_libraries(button_read 
+        
+        )
 
 pico_add_extra_outputs(button_read)
+

@@ -154,8 +154,8 @@ la lógica. Ese es justamente el motivo de simular primero.
 
 | Prueba | Esperado | Wokwi | Física |
 |---|---|---|---|
-| Encender el sistema | Autos verde / peatón rojo (S0) | ⬜ | ⬜ |
-| Pulsar una vez | Ejecuta una secuencia completa S1→S2→S3→S0 | ⬜ | ⬜ |
+| Encender el sistema | Autos verde / peatón rojo (S0) | ⬜ | ✅ |
+| Pulsar una vez | Ejecuta una secuencia completa S1→S2→S3→S0 | ⬜ | ✅ |
 | Mantener el botón presionado | No repite la secuencia inmediatamente | ⬜ | ⬜ |
 | Pulsar varias veces seguidas | Sistema estable | ⬜ | ⬜ |
 | Durante el cruce | Nunca auto verde + peatón verde | ⬜ | ⬜ |
@@ -166,7 +166,7 @@ la lógica. Ese es justamente el motivo de simular primero.
 | Prueba | Esperado | Wokwi | Física |
 |---|---|---|---|
 | `button_read.c` | Mismo `1 / 0` que la versión MicroPython | ⬜ | ⬜ |
-| `traffic_light.c` | Misma secuencia de estados y misma invariante | ⬜ | ⬜ |
+| `traffic_light.c` | Misma secuencia de estados y misma invariante | ⬜ | ✅ |
 
 ## 6. Problemas encontrados
 
@@ -216,8 +216,35 @@ la lógica. Ese es justamente el motivo de simular primero.
 
 - **Toolchain fuera del PATH.** `arm-none-eabi-gcc`, `ninja` y el `cmake` del SDK viven en
   `~/.pico-sdk/` y solo los inyecta la extensión dentro de VS Code. Desde una terminal
-  normal hay que exportarlos a mano; por eso se agregó `cpp/build.sh`, que no depende de
-  VS Code en absoluto.
+  normal hay que exportar `PICO_SDK_PATH` y `PICO_TOOLCHAIN_PATH` a mano, o `cmake` toma
+  el `gcc` del sistema y falla. Por eso la compilación se hace desde VS Code.
+
+- **Los cinco LEDs estaban al revés (el problema real del hardware).** Al armar el circuito
+  físico no encendía **ningún** LED. El primer dato útil vino del USB: la placa seguía
+  enumerando como `2e8a:0009` y creando `/dev/ttyACM0`, y ese puerto **solo existe si el
+  firmware llegó a ejecutar** `stdio_init_all()`. Con eso el software quedaba descartado y
+  el problema tenía que ser eléctrico.
+
+  Revisar el protoboard una y otra vez no sirvió de nada, porque **un LED al revés se ve
+  idéntico a uno bien puesto**: la única pista física es la pata larga (ánodo) y el chaflán
+  del encapsulado del lado del cátodo. Lo que lo resolvió fue **reducir el circuito al
+  mínimo**: sacar la Pico del protoboard y armar un solo LED con jumpers directo a los
+  headers (`3V3 → 330 Ω → LED → GND`). Ahí tampoco encendió, y al voltearlo sí. Los cinco
+  estaban invertidos.
+
+  La lección no es sobre LEDs: cuando **todos** los componentes iguales fallan a la vez, no
+  son N errores independientes, es **un criterio equivocado aplicado N veces**. Y la forma
+  de encontrarlo no es mirar con más atención, sino quitar variables hasta que quede un solo
+  componente sospechoso.
+
+- **El `.uf2` corría pero no imprimía nada.** Los proyectos de `cpp/` los generó la extensión
+  de VS Code, y su plantilla trae `pico_enable_stdio_usb(<proyecto> 0)`: **el serial por USB
+  apagado**. El programa se ejecutaba y los LEDs respondían, pero no había `printf` que leer
+  ni `/dev/ttyACM0` que abrir, lo cual es indistinguible de "la placa está muerta" si uno se
+  guía solo por el monitor serial. Se nota en el tamaño del binario: **30 KB** sin el stack
+  USB contra **64 KB** con él. Se corrigió poniendo `pico_enable_stdio_usb(... 1)` y
+  `pico_enable_stdio_uart(... 0)` en los dos `CMakeLists.txt`, porque no hay nada cableado a
+  los pines UART de la placa.
 
 ## 7. Conclusión
 
@@ -246,7 +273,6 @@ La versión en C/C++ confirma que lo aprendido es el **concepto**, no la sintaxi
 | `micropython/03_semaforo_peatonal.py` | CHALLENGE — semáforo completo |
 | `cpp/button_read/button_read.c` | Proyecto Pico SDK: lectura equivalente del botón en C |
 | `cpp/traffic_light/traffic_light.c` | Proyecto Pico SDK: semáforo completo en C |
-| `cpp/build.sh` | Compila los proyectos de C hacia la Pico 2 W física |
 | `wokwi/` | Circuito (`diagram.json`) para pegar en wokwi.com |
 | `evidence/` | Capturas de la simulación y evidencia del hardware |
 
@@ -259,7 +285,7 @@ lo compila y para qué chip.
 |---|---|---|
 | Dónde | wokwi.com (IDE web) | Pico 2 W física |
 | Chip | RP2040 | RP2350 |
-| Compila | Wokwi, en la nube | `cpp/build.sh` en local |
+| Compila | Wokwi, en la nube | VS Code + extensión Pico, en local |
 | Sirve para | Validar la lógica, capturar el serial | Evidencia real: fotos, video, serial |
 
 #### Simulación — wokwi.com
@@ -289,23 +315,24 @@ el C para RP2040, que no es el chip de la placa.
 
 #### Hardware — C/C++
 
-```bash
-cd cpp
-./build.sh                 # compila los dos proyectos para pico2_w
-./build.sh button_read     # o solo uno
-./build.sh --clean         # tras cambiar de board, obligatorio
-```
+Se compila desde **VS Code** con la extensión *Raspberry Pi Pico*, que es la que pone el
+toolchain de `~/.pico-sdk/` en el PATH.
 
-El script exporta el toolchain de `~/.pico-sdk/` y deja el `.uf2` en
-`cpp/<proyecto>/build/`. Ese archivo se copia a la Pico en modo BOOTSEL. El monitor serial
-se abre con `screen /dev/ttyACM0 115200` (requiere estar en el grupo `dialout`).
+1. Abrir `cpp/button_read/` o `cpp/traffic_light/` como carpeta (*File → Open Folder*),
+   **no** la carpeta de la sesión: la extensión espera un proyecto por ventana y sus rutas
+   de IntelliSense son relativas a la carpeta abierta. Alternativa: abrir
+   `Sesion_03.code-workspace`, que ya registra los dos proyectos por separado.
+2. Botón *Compile*. El `.uf2` queda en `cpp/<proyecto>/build/`.
+3. Conectar la Pico en modo **BOOTSEL** (mantener el botón mientras se enchufa) y copiar
+   ahí el `.uf2`.
+4. Abrir el monitor serial:
 
-**Desde VS Code:** abrir `cpp/button_read/` o `cpp/traffic_light/` como carpeta
-(*File → Open Folder*), **no** la carpeta de la sesión. La extensión de Pico espera un
-proyecto por ventana y sus rutas de IntelliSense son relativas a la carpeta abierta.
-Alternativa: abrir `Sesion_03.code-workspace`, que ya registra los dos proyectos como
-carpetas independientes del mismo workspace.
+   ```bash
+   screen /dev/ttyACM0 115200
+   ```
 
-> Si `#include "pico/stdlib.h"` sale subrayado en rojo: compilar una vez
-> (`./build.sh`) y recargar la ventana. IntelliSense necesita el `build/` para resolver
-> los headers del SDK.
+   Se sale con `Ctrl-A`, `K`, `y`. Requiere pertenecer al grupo `dialout`
+   (`sudo usermod -aG dialout $USER` y volver a iniciar sesión).
+
+> Si `#include "pico/stdlib.h"` sale subrayado en rojo: compilar una vez y recargar la
+> ventana. IntelliSense necesita el `build/` para resolver los headers del SDK.

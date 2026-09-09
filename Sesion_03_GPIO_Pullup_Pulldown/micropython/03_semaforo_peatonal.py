@@ -1,13 +1,10 @@
 # =========================================================================
-#  CHALLENGE - Semaforo peatonal interactivo
+#  Reto 03 - Semaforo peatonal interactivo
 #  Sesion 03: GPIO, pull-up/pull-down y debounce
 #  Angel Rugerio Jimenez #201720
 # =========================================================================
 #
-#  Etapa A - Boton:  GP16 --- BOTON --- GND        (pull-up interno)
-#  Etapa B - LEDs :  GPIO --- 330 ohm --- LED --- GND
-#
-#  Pinout de la sesion
+#  Pinout
 #  -------------------------------------------------
 #   Auto rojo      GP15      Peaton rojo    GP12
 #   Auto amarillo  GP14      Peaton verde   GP11
@@ -20,7 +17,7 @@
 #   S2 CRUCE       autos ROJO       peaton VERDE
 #   S3 FIN         autos ROJO       peaton VERDE parpadeando
 #
-#  INVARIANTE DE SEGURIDAD
+#  Seguridad
 #   Auto verde y peaton verde NUNCA pueden estar encendidos a la vez.
 #   Aqui no se deja como comentario: set_lights() lo verifica en cada
 #   cambio de estado y se niega a aplicar una combinacion peligrosa.
@@ -55,16 +52,13 @@ ped_green = Pin(PED_GREEN_PIN, Pin.OUT)
 button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
 
 
-# --- Capa de abstraccion -----------------------------------------------
-# No pensamos en "0,0,1,1,0": pensamos en acciones del sistema.
+# --- Funciones ---------------------------------------------------------
 
 def set_lights(car_r, car_y, car_g, ped_r, ped_g):
-    """Aplica un estado completo del semaforo, previa revision de seguridad."""
     if car_g and ped_g:
-        # Estado peligroso: se bloquea y se cae a la combinacion mas segura
-        print("!! ESTADO PELIGROSO BLOQUEADO: auto verde + peaton verde")
-        car_r, car_y, car_g, ped_r, ped_g = 1, 0, 0, 1, 0
-
+        print("!! set_lights() rechazado: auto VERDE + peaton VERDE simultaneos")
+        return
+    
     car_red.value(car_r)
     car_yellow.value(car_y)
     car_green.value(car_g)
@@ -112,9 +106,6 @@ def crossing_sequence():
 
     pedestrians_hurry()
 
-    # Antes de devolver el verde a los autos, el peaton vuelve a rojo.
-    # Este paso intermedio es lo que garantiza que los dos verdes nunca
-    # se traslapen ni siquiera por un instante.
     set_lights(1, 0, 0, 1, 0)
     sleep_ms(RECOVERY_MS)
 
@@ -122,9 +113,10 @@ def crossing_sequence():
     print(">> SECUENCIA COMPLETA - sistema en reposo\n")
 
 
-# --- Programa principal ------------------------------------------------
-print("=" * 52)
-print("CHALLENGE - Semaforo peatonal interactivo")
+# --- Main -------------------------------------------------------------
+"""Esto solo es una división para el texto"""
+print("=" * 52) 
+print("Reto 03 - Semaforo peatonal interactivo")
 print("Boton en GP{} con pull-up interno (presionado = 0)".format(BUTTON_PIN))
 print("=" * 52)
 
@@ -135,15 +127,12 @@ last = 1   # boton libre por el pull-up
 while True:
     now = button.value()
 
-    # Flanco de bajada + debounce: una peticion real del peaton
     if last == 1 and now == 0:
         sleep_ms(DEBOUNCE_MS)
 
         if button.value() == 0:
             crossing_sequence()
 
-            # Wait for release: mantener el boton presionado NO encadena
-            # una segunda secuencia.
             while button.value() == 0:
                 sleep_ms(POLL_MS)
 
