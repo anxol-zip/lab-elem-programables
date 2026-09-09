@@ -35,7 +35,8 @@ Armado **por etapas**, no de golpe:
 
 El diagrama completo está en [`wokwi/diagram.json`](./wokwi/diagram.json) y es **el mismo
 para los cuatro escenarios** (los dos lenguajes × los dos programas): el hardware no cambia
-entre lenguajes, y `button_read` simplemente no usa los LEDs.
+entre lenguajes, y `button_read` simplemente no usa los LEDs. El mismo circuito se arma
+físicamente en protoboard y se pega en el simulador; no hay dos circuitos.
 
 > [!WARNING]
 > Las entradas de la Pico son de lógica **3.3 V**. Nunca conectar 5 V directo a un GPIO.
@@ -126,43 +127,46 @@ Regla práctica: **1 presión = 1 petición**.
 
 ## 5. Pruebas realizadas
 
+Cada prueba se corre **dos veces**: en la simulación (wokwi.com, RP2040) y en la placa
+física (Pico 2 W, RP2350). El código es el mismo en los dos casos, así que una discrepancia
+entre columnas apunta al hardware —un cable, una resistencia, un pin mal conectado— y no a
+la lógica. Ese es justamente el motivo de simular primero.
+
 > [!NOTE]
-> Marcar PASS/FAIL después de ejecutar cada prueba y guardar la captura correspondiente en
-> [`evidence/`](./evidence/). Los resultados aún no se llenan porque falta correr la
-> simulación.
+> Marcar ✅/❌ y guardar la captura correspondiente en [`evidence/`](./evidence/).
 
 ### DO 01 — Validación del botón (`01_button_read.py`)
 
-| Estado físico | Lectura esperada (pull-up) | Resultado |
-|---|---|---|
-| Botón libre | `1` | ⬜ |
-| Botón presionado | `0` | ⬜ |
+| Estado físico | Lectura esperada (pull-up) | Wokwi | Física |
+|---|---|---|---|
+| Botón libre | `1` | ⬜ | ⬜ |
+| Botón presionado | `0` | ⬜ | ⬜ |
 
 ### DO 02 — Validación del debounce (`02_button_debounce.py`)
 
-| Prueba | Resultado esperado | Resultado |
-|---|---|---|
-| Click corto | 1 evento | ⬜ |
-| Click largo (2 s) | 1 evento | ⬜ |
-| Clicks repetidos rápidos | Sistema estable, sin eventos fantasma | ⬜ |
+| Prueba | Resultado esperado | Wokwi | Física |
+|---|---|---|---|
+| Click corto | 1 evento | ⬜ | ⬜ |
+| Click largo (2 s) | 1 evento | ⬜ | ⬜ |
+| Clicks repetidos rápidos | Sistema estable, sin eventos fantasma | ⬜ | ⬜ |
 
 ### CHALLENGE — Validación del semáforo (`03_semaforo_peatonal.py`)
 
-| Prueba | Esperado | Resultado |
-|---|---|---|
-| Encender el sistema | Autos verde / peatón rojo (S0) | ⬜ |
-| Pulsar una vez | Ejecuta una secuencia completa S1→S2→S3→S0 | ⬜ |
-| Mantener el botón presionado | No repite la secuencia inmediatamente | ⬜ |
-| Pulsar varias veces seguidas | Sistema estable | ⬜ |
-| Durante el cruce | Nunca auto verde + peatón verde | ⬜ |
-| Cambiar `CROSSING_MS` a 6000 | Cruce más largo, secuencia sigue siendo segura | ⬜ |
+| Prueba | Esperado | Wokwi | Física |
+|---|---|---|---|
+| Encender el sistema | Autos verde / peatón rojo (S0) | ⬜ | ⬜ |
+| Pulsar una vez | Ejecuta una secuencia completa S1→S2→S3→S0 | ⬜ | ⬜ |
+| Mantener el botón presionado | No repite la secuencia inmediatamente | ⬜ | ⬜ |
+| Pulsar varias veces seguidas | Sistema estable | ⬜ | ⬜ |
+| Durante el cruce | Nunca auto verde + peatón verde | ⬜ | ⬜ |
+| Cambiar `CROSSING_MS` a 6000 | Cruce más largo, secuencia sigue siendo segura | ⬜ | ⬜ |
 
 ### Transferencia a C/C++
 
-| Prueba | Esperado | Resultado |
-|---|---|---|
-| `button_read.c` | Mismo `1 / 0` que la versión MicroPython | ⬜ |
-| `traffic_light.c` | Misma secuencia de estados y misma invariante | ⬜ |
+| Prueba | Esperado | Wokwi | Física |
+|---|---|---|---|
+| `button_read.c` | Mismo `1 / 0` que la versión MicroPython | ⬜ | ⬜ |
+| `traffic_light.c` | Misma secuencia de estados y misma invariante | ⬜ | ⬜ |
 
 ## 6. Problemas encontrados
 
@@ -173,8 +177,13 @@ Regla práctica: **1 presión = 1 petición**.
 - **Lectura invertida.** Con pull-up, `presionado = 0`. La primera intuición es escribir
   `if button.value() == 1`, que resulta en un semáforo que se dispara al soltar en lugar de
   al presionar.
-- **Board de compilación.** El proyecto de C/C++ apunta a `PICO_BOARD pico` (RP2040) porque
-  es el chip que simula Wokwi. Para la Pico 2 W física hay que cambiarlo a `pico2_w`.
+- **Un `.uf2` no sirve para las dos cosas.** Wokwi simula un RP2040 y la placa física es una
+  Pico 2 W (RP2350). Al principio el proyecto apuntaba a `PICO_BOARD pico` para poder
+  simularlo con la extensión de VS Code, pero ese binario **no arranca** en la placa real.
+  Es lo que motivó la separación actual: los proyectos de `cpp/` compilan solo para
+  `pico2_w`, y la simulación se corre en wokwi.com, que compila su propio binario para
+  RP2040 en la nube. Un solo código fuente, dos compilaciones distintas, cada una para lo
+  suyo.
 - **Serial en C/C++.** `stdio_init_all()` necesita un margen de ~2 s antes del primer
   `printf`, o los primeros mensajes se pierden porque el monitor todavía no se conectó.
 - **VS Code no compilaba nada (el problema principal).** La causa fue el
@@ -237,25 +246,59 @@ La versión en C/C++ confirma que lo aprendido es el **concepto**, no la sintaxi
 | `micropython/03_semaforo_peatonal.py` | CHALLENGE — semáforo completo |
 | `cpp/button_read/button_read.c` | Proyecto Pico SDK: lectura equivalente del botón en C |
 | `cpp/traffic_light/traffic_light.c` | Proyecto Pico SDK: semáforo completo en C |
-| `cpp/build.sh` | Compila los proyectos de C desde una terminal normal |
-| `wokwi/` | Circuito + un `wokwi.toml` por escenario, apuntando al firmware de `cpp/` |
-| `evidence/` | Capturas de Wokwi y foto del hardware |
+| `cpp/build.sh` | Compila los proyectos de C hacia la Pico 2 W física |
+| `wokwi/` | Circuito (`diagram.json`) para pegar en wokwi.com |
+| `evidence/` | Capturas de la simulación y evidencia del hardware |
 
 ### Cómo correrlo
 
-**MicroPython** — copiar el script deseado como `main.py` en la Pico (o pegarlo en el IDE
-web de Wokwi) y abrir el monitor serial.
+Hay **dos entornos** y no se mezclan. El código fuente es el mismo; lo que cambia es quién
+lo compila y para qué chip.
 
-**C/C++** — desde una terminal normal:
+| | Simulación | Hardware |
+|---|---|---|
+| Dónde | wokwi.com (IDE web) | Pico 2 W física |
+| Chip | RP2040 | RP2350 |
+| Compila | Wokwi, en la nube | `cpp/build.sh` en local |
+| Sirve para | Validar la lógica, capturar el serial | Evidencia real: fotos, video, serial |
+
+#### Simulación — wokwi.com
+
+Se pega el circuito de [`wokwi/`](./wokwi/) y el script (o el `.c`) en el IDE web.
+Procedimiento paso a paso y links de los proyectos publicados en
+[`wokwi/README.md`](./wokwi/README.md).
+
+No se usa la extensión de Wokwi para VS Code: no simula MicroPython y obligaría a compilar
+el C para RP2040, que no es el chip de la placa.
+
+#### Hardware — MicroPython
+
+1. Flashear el firmware de MicroPython para **RPI_PICO2_W** (BOOTSEL + arrastrar el `.uf2`).
+2. Instalar `mpremote` (`pip3 install --user mpremote`).
+3. Correr un script sin instalar nada en la placa:
+
+   ```bash
+   mpremote run micropython/01_button_read.py
+   ```
+
+4. Para dejarlo autónomo (video del semáforo corriendo solo):
+
+   ```bash
+   mpremote cp micropython/03_semaforo_peatonal.py :main.py
+   ```
+
+#### Hardware — C/C++
 
 ```bash
 cd cpp
-./build.sh                 # compila los dos proyectos
+./build.sh                 # compila los dos proyectos para pico2_w
 ./build.sh button_read     # o solo uno
+./build.sh --clean         # tras cambiar de board, obligatorio
 ```
 
 El script exporta el toolchain de `~/.pico-sdk/` y deja el `.uf2` en
-`cpp/<proyecto>/build/`. Ese archivo se copia a la Pico en modo BOOTSEL.
+`cpp/<proyecto>/build/`. Ese archivo se copia a la Pico en modo BOOTSEL. El monitor serial
+se abre con `screen /dev/ttyACM0 115200` (requiere estar en el grupo `dialout`).
 
 **Desde VS Code:** abrir `cpp/button_read/` o `cpp/traffic_light/` como carpeta
 (*File → Open Folder*), **no** la carpeta de la sesión. La extensión de Pico espera un
@@ -266,10 +309,3 @@ carpetas independientes del mismo workspace.
 > Si `#include "pico/stdlib.h"` sale subrayado en rojo: compilar una vez
 > (`./build.sh`) y recargar la ventana. IntelliSense necesita el `build/` para resolver
 > los headers del SDK.
-
-**Simulación en Wokwi** — los `wokwi.toml` de `wokwi/cpp/*/` apuntan por ruta relativa al
-`.uf2` de `cpp/`, así que la simulación corre **el mismo binario** que se flashea en la Pico
-física. En VS Code: `Wokwi: Select Config File` → elegir el escenario → `Wokwi: Start
-Simulator`. MicroPython se prueba en wokwi.com porque la extensión no simula MicroPython.
-
-Procedimiento completo en [`wokwi/README.md`](./wokwi/README.md).

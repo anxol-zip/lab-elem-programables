@@ -21,9 +21,10 @@ if (EXISTS ${picoVscode})
 endif()
 # ====================================================================================
 
-# RP2040: es el chip que simula Wokwi (parte wokwi-pi-pico).
-# Para compilar hacia la Pico 2 W fisica, cambiar a: pico2_w
-set(PICO_BOARD pico CACHE STRING "Board type")
+# RP2350: este proyecto compila EXCLUSIVAMENTE para la Pico 2 W fisica.
+# La simulacion de este mismo codigo se corre en wokwi.com, que compila
+# su propio binario para RP2040 en la nube. Aqui no se simula nada.
+set(PICO_BOARD pico2_w CACHE STRING "Board type")
 
 include(pico_sdk_import.cmake)
 
