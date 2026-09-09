@@ -1,0 +1,9 @@
+{
+    "folders": [
+        { "name": "Sesion_03 (raíz)", "path": "." },
+        { "name": "cpp · button_read", "path": "cpp/button_read" },
+        { "name": "cpp · traffic_light", "path": "cpp/traffic_light" },
+        { "name": "micropython", "path": "micropython"}
+    ],
+    "settings": {}
+}
