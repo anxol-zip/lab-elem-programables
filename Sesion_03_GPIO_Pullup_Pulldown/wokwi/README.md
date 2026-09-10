@@ -23,4 +23,4 @@ Los dos archivos describen **el mismo circuito**. La única diferencia es el cam
 | MicroPython — debounce | _https://wokwi.com/projects/474718816219506689_ |
 | MicroPython — semáforo | _https://wokwi.com/projects/474710654093435905_ |
 | C/C++ — lectura del botón | _https://wokwi.com/projects/474711032994374657_ |
-| C/C++ — semáforo | _https://wokwi.com/projects/474718794103988225_ |
+| C/C++ — semáforo | _https://wokwi.com/projects/474711032994374657_ |
