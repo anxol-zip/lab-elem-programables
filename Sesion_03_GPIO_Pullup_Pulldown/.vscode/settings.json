@@ -1,0 +1,10 @@
+{
+    // Esta carpeta NO es un proyecto de CMake: es la carpeta de la sesion.
+    // Los proyectos de C/C++ viven en cpp/button_read y cpp/traffic_light,
+    // cada uno con su propio CMakeLists.txt y su propio .vscode/.
+    // Si aqui se define "cmake.sourceDirectory", CMake Tools intenta configurar
+    // en <sesion>/build con el cmake del sistema y falla: ese fue el error.
+    "cmake.configureOnOpen": false,
+    "cmake.automaticReconfigure": false,
+    "cmake.configureOnEdit": false
+}
