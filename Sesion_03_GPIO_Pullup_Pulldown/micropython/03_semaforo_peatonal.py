@@ -114,7 +114,7 @@ def crossing_sequence():
 
 
 # --- Main -------------------------------------------------------------
-"""Esto solo es una división para el texto"""
+# Encabezado por serial: separa el arranque del sistema de la traza de estados
 print("=" * 52) 
 print("Reto 03 - Semaforo peatonal interactivo")
 print("Boton en GP{} con pull-up interno (presionado = 0)".format(BUTTON_PIN))

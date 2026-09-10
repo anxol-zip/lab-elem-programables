@@ -19,11 +19,7 @@
  *
  *  Seguridad
  *   Auto verde y peaton verde NUNCA deben estar encendidos a la vez.
- *   NOTA: set_lights() en esta version NO implementa un chequeo en
- *   tiempo de ejecucion (ver nota tecnica al final de la respuesta). La
- *   invariante se sostiene solo porque las funciones de estado
- *   (cars_go, cars_prepare_to_stop, pedestrians_go, pedestrians_hurry)
- *   nunca la violan por construccion.
+ *   set_lights() en esta version implementa un chequeo en tiempo de ejecucion.
  * ========================================================================= */
 
 #include <stdbool.h>
