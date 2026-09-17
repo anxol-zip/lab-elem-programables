@@ -31,7 +31,7 @@ def detectar_click(pin):
 # La interrupción salta en el "flanco de bajada" (IRQ_FALLING), cuando el voltaje cae a 0 al presionar
 boton_entrada.irq(trigger = Pin.IRQ_FALLING, handler = detectar_click)
 
-print("Contador de clicks con IRQ. Boton libre =", boton_entrada.value())
+print("Contador de clicks con IRQ.")
 
 # El bucle principal está liberado: solo imprime cuando el contador cambió,
 # así la consola muestra la secuencia limpia 1, 2, 3, 4, 5
