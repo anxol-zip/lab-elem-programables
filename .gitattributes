@@ -1,1 +1,1 @@
-Sesion_03_GPIO_Pullup_Pulldown/evidence/RE03_video.mp4 filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
