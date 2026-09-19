@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "author": "Laboratorio de Elementos Programables I / Angel Rugerio y Axel García",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-pi-pico", "id": "pico", "top": 16, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnA",
+      "top": -35,
+      "left": 230,
+      "attrs": { "color": "green", "label": "A" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnB",
+      "top": 35,
+      "left": 230,
+      "attrs": { "color": "blue", "label": "B" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledRed",
+      "top": 102,
+      "left": -121,
+      "attrs": { "color": "red", "label": "LOCKED" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledYellow",
+      "top": 188.4,
+      "left": -130.6,
+      "attrs": { "color": "yellow", "label": "WAIT" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledGreen",
+      "top": 255.6,
+      "left": -111.4,
+      "attrs": { "color": "green", "label": "ACCESS" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rRed",
+      "top": 176.75,
+      "left": -76.8,
+      "rotate": 180,
+      "attrs": { "value": "330" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rYellow",
+      "top": 225.05,
+      "left": -87.8,
+      "rotate": 180,
+      "attrs": { "value": "330" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rGreen",
+      "top": 311.15,
+      "left": -76.8,
+      "rotate": 180,
+      "attrs": { "value": "330" }
+    }
+  ],
+  "connections": [
+    [ "pico:GP18", "btnA:1.l", "green", [ "h129.6", "v-204.35" ] ],
+    [ "pico:GP16", "btnB:1.l", "blue", [ "h139.2", "v-163.15" ] ],
+    [ "pico:GP12", "rRed:1", "red", [] ],
+    [ "rRed:2", "ledRed:A", "red", [] ],
+    [ "rYellow:2", "ledYellow:A", "orange", [] ],
+    [ "rGreen:2", "ledGreen:A", "green", [] ],
+    [ "pico:GND.8", "btnB:2.l", "black", [ "h120", "v19.25" ] ],
+    [ "pico:GND.8", "btnA:2.l", "black", [ "h120", "v-47.95" ] ],
+    [ "ledGreen:C", "pico:GND.4", "black", [ "v28.8", "h106" ] ],
+    [ "ledYellow:C", "pico:GND.4", "black", [ "v19.2", "h125.2", "v-57.65" ] ],
+    [ "ledRed:C", "pico:GND.4", "black", [ "v48", "h0.4" ] ],
+    [ "rYellow:1", "pico:GP13", "orange", [ "v-28.8", "h19.2", "v-19.2" ] ],
+    [ "rGreen:1", "pico:GP14", "green", [ "v0.3", "h17.8", "v-115.2" ] ]
+  ],
+  "dependencies": {}
+}
