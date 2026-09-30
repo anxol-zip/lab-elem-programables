@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "author": "Angel Rugerio",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-pi-pico", "id": "pico", "top": 20, "left": -140, "rotate": 90, "attrs": {} },
+    {
+      "type": "chip-l298n",
+      "id": "bridge",
+      "top": -142.98,
+      "left": -14.4,
+      "attrs": { "Vs": "6" }
+    },
+    {
+      "type": "chip-stepper-esc",
+      "id": "esc",
+      "top": -133.38,
+      "left": 187.2,
+      "attrs": { "Tau": "10", "Texp": "-2", "MaxSpeed": "180" }
+    },
+    {
+      "type": "wokwi-stepper-motor",
+      "id": "motor",
+      "top": -5.99,
+      "left": 163.63,
+      "attrs": { "size": "17", "display": "angle", "arrow": "orange" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "fwd",
+      "top": 207.8,
+      "left": -144,
+      "attrs": { "label": "FORWARD", "color": "green", "key": "F", "bounce": "0" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "rev",
+      "top": 275,
+      "left": -144,
+      "attrs": { "label": "REVERSE", "color": "blue", "key": "R", "bounce": "0" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "stop",
+      "top": 342.2,
+      "left": -144,
+      "attrs": { "label": "STOP", "color": "red", "key": "S", "bounce": "0" }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot",
+      "top": 229.1,
+      "left": 211,
+      "attrs": { "value": "700" }
+    }
+  ],
+  "connections": [
+    [ "pico:GP2", "bridge:IN1", "green", [ "v-211.3", "h3.65" ] ],
+    [ "pico:GP3", "bridge:IN2", "blue", [ "v-201.7", "h22.85" ] ],
+    [ "pico:GP4", "bridge:EN A", "orange", [ "v-220.9", "h216.05" ] ],
+    [ "pico:GND.2", "bridge:GND", "black", [ "v-240.1", "h186.05", "v19.2" ] ],
+    [ "bridge:OUT1", "esc:INA", "green", [ "h40.21", "v86.4" ] ],
+    [ "bridge:OUT2", "esc:INB", "blue", [ "h30.61", "v86.4" ] ],
+    [ "pico:3V3", "esc:VMOT", "red", [ "v20.3", "h176.45", "v-297.6", "h67.2" ] ],
+    [ "pico:GND.3", "esc:GND", "black", [ "v-249.7", "h262.85", "v67.2" ] ],
+    [ "esc:A-", "motor:A-", "#8f4814", [ "h136.21", "v326.4", "h-163.2" ] ],
+    [ "esc:A+", "motor:A+", "#8f4814", [ "h126.61", "v307.2", "h-144" ] ],
+    [ "esc:B+", "motor:B+", "#8f4814", [ "h117.01", "v288", "h-124.8" ] ],
+    [ "esc:B-", "motor:B-", "#8f4814", [ "h107.41", "v268.8" ] ],
+    [ "pico:GP14", "fwd:1.l", "green", [ "v-19.3", "h-44.35", "v153.6" ] ],
+    [ "fwd:2.l", "pico:GND.4", "black", [ "h-105.6", "v-182.2", "h73.15" ] ],
+    [ "pico:GP15", "rev:1.l", "blue", [ "v-9.7", "h-25.15", "v211.2" ] ],
+    [ "rev:2.l", "pico:GND.4", "black", [ "h-105.6", "v-249.4", "h73.15" ] ],
+    [ "pico:GP16", "stop:1.l", "red", [ "v202.7", "h51.65" ] ],
+    [ "stop:2.l", "pico:GND.4", "black", [ "h-105.6", "v-316.6", "h73.15" ] ],
+    [ "pot:SIG", "pico:GP26", "purple", [ "v19.2", "h-144.4", "v-124.8", "h-205.25" ] ],
+    [ "pot:VCC", "pico:3V3", "violet", [ "v28.8", "h-135.2", "v-144", "h-176.45" ] ],
+    [
+      "pot:GND",
+      "pico:GND.6",
+      "black",
+      [ "v9.6", "h-124.8", "v-105.6", "h-220.8", "v-38.4", "h-22.85" ]
+    ]
+  ],
+  "dependencies": {
+    "chip-l298n": "github:drf5n/Wokwi-Chip-L298N@1.0.5",
+    "chip-stepper-esc": "github:drf5n/Wokwi-Chip-stepper-esc@1.0.0"
+  }
+}
