@@ -210,13 +210,13 @@ Cada ciclo de `main.py` tiene dos etapas y se repite indefinidamente, para poder
 Salida del serial (se omiten las líneas de cada paso de rampa):
 
 ```
-DO 04 - SMART MOTOR CONTROLLER
-Pines: GP2=IN1, GP3=IN2, GP4=ENA/PWM (100 Hz)
+RETO 06 - SMART MOTOR CONTROLLER
+Pines: GP2 = IN1, GP3 = IN2, GP4 = ENA/PWM @ (100 Hz)
 Zona muerta compensada: 1 % logico = 40 % real
-====================
-CICLO 1
+============================================================
+    CICLO 1
 
---- PRUEBA DE VELOCIDADES ---
+########## PRUEBA DE VELOCIDADES (DO 04) ##########
 [DIRECCION] FORWARD
 [NIVEL] 25 %
 [MANTENER] 25 % durante 2000 ms
@@ -225,9 +225,10 @@ CICLO 1
 [MANTENER] 100 % durante 2000 ms
 [STOP] Motor detenido
 
---- CHALLENGE 06 ---
+########## CHALLENGE 06 ##########
 [DIRECCION] FORWARD
 [MANTENER] 100 % durante 2000 ms
+[SEGURIDAD] Bajando a 0 % antes de cambiar de direccion
 [DIRECCION] REVERSE
 [MANTENER] 75 % durante 2000 ms
 [STOP] Motor detenido
@@ -258,7 +259,7 @@ La prueba se corrió en la simulación (wokwi.com, RP2040) y en la placa física
 |---|---|
 | Simulación Wokwi | [`wokwi/enlace_o_captura.md`](./wokwi/enlace_o_captura.md) · [`evidence/simulation.png`](./evidence/simulation.png) |
 | Serial de la simulación | [`evidence/serial.png`](./evidence/serial.png) |
-| Montaje físico | [`evidence/hardware.jpg`](./evidence/hardware.jpg) · [`evidence/hardware_video.mp4`](./evidence/hardware_video.mp4) |
+| Montaje físico | [`evidence/hardware.jpg`](./evidence/hardware.jpeg) · [`evidence/hardware_video.mp4`](./evidence/hardware_video.mp4) |
 
 ## 11. Problemas encontrados
 
@@ -285,7 +286,7 @@ Y la parte importante no es mover el motor, sino que el controlador **no deje mo
 | Archivo / carpeta | Contenido |
 |---|---|
 | `main.py` | Reto 06 — controlador completo con rampas y cambio seguro |
-| `wokwi/diagram.json` | Circuito de la simulación (plantilla oficial sin botones ni potenciómetro) |
+| `wokwi/diagram.json` | Circuito de la simulación (plantilla oficial; los botones y el potenciómetro se dejaron sin usar) |
 | `wokwi/enlace_o_captura.md` | Enlace a la simulación publicada |
 | `evidence/` | Captura de la simulación y evidencia del montaje físico |
 

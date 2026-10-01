@@ -119,7 +119,7 @@ def ramp_to(start, end, step=10, delay_ms=100):
 
 # === Cambio de dirección ===
 # Nunca se invierte en movimiento, primero se pone la rampa a 0 %, pausa con el
-# motor detenido y solo entonces se cambia IN1/IN2. En realidad, no se usa en 
+# motor detenido y solo entonces se cambia IN1/IN2.
 def cambiar_direccion(nueva):
     if nueva == direccion_actual:
         return
