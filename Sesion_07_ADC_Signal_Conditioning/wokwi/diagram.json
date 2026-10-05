@@ -8,59 +8,175 @@
       "id": "pico",
       "top": 0,
       "left": 0,
-      "attrs": { "env": "micropython-20260406-v1.28.0" }
+      "attrs": {
+        "env": "micropython-20260406-v1.28.0"
+      }
     },
     {
       "type": "wokwi-led",
       "id": "led1",
       "top": -32.4,
       "left": 215,
-      "attrs": { "color": "limegreen" }
+      "attrs": {
+        "color": "limegreen"
+      }
     },
     {
       "type": "wokwi-led",
       "id": "led2",
       "top": 25.2,
       "left": 215,
-      "attrs": { "color": "yellow" }
+      "attrs": {
+        "color": "yellow"
+      }
     },
-    { "type": "wokwi-led", "id": "led3", "top": 82.8, "left": 215, "attrs": { "color": "red" } },
-    { "type": "wokwi-potentiometer", "id": "pot1", "top": 46.7, "left": 115, "attrs": {} },
+    {
+      "type": "wokwi-led",
+      "id": "led3",
+      "top": 82.8,
+      "left": 215,
+      "attrs": {
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-gas-sensor",
+      "id": "gas1",
+      "top": 40,
+      "left": 90,
+      "attrs": {}
+    },
     {
       "type": "wokwi-resistor",
       "id": "r1",
       "top": 147.95,
       "left": 144,
-      "attrs": { "value": "1000" }
+      "attrs": {
+        "value": "1000"
+      }
     },
     {
       "type": "wokwi-resistor",
       "id": "r2",
       "top": 167.15,
       "left": 144,
-      "attrs": { "value": "1000" }
+      "attrs": {
+        "value": "1000"
+      }
     },
     {
       "type": "wokwi-resistor",
       "id": "r3",
       "top": 186.35,
       "left": 144,
-      "attrs": { "value": "1000" }
+      "attrs": {
+        "value": "1000"
+      }
     }
   ],
   "connections": [
-    [ "led1:C", "pico:GND.8", "black", [ "v0" ] ],
-    [ "led2:C", "pico:GND.8", "black", [ "h-28.4", "v-35.15" ] ],
-    [ "led3:C", "pico:GND.8", "black", [ "h-28.4", "v-92.75" ] ],
-    [ "pico:3V3", "pot1:VCC", "violet", [ "h32.66", "v83.15", "h58.4" ] ],
-    [ "pico:GP26", "pot1:SIG", "orange", [ "h13.46", "v44.75", "h67.6" ] ],
-    [ "r1:2", "led3:A", "red", [ "h37.2", "v-28.8" ] ],
-    [ "r2:2", "led2:A", "gold", [ "h56.4", "v-105.6" ] ],
-    [ "r3:2", "led1:A", "limegreen", [ "h66", "v-182.4" ] ],
-    [ "pico:GP15", "r1:1", "red", [ "v6.39", "h118.75", "v-48" ] ],
-    [ "pico:GP14", "r2:1", "gold", [ "h-15.65", "v25.59", "h144", "v-38.4" ] ],
-    [ "pico:GP13", "r3:1", "limegreen", [ "h-25.25", "v54.39", "h163.2" ] ],
-    [ "pot1:GND", "pico:GND.6", "black", [ "v0" ] ]
+    [
+      "led1:C",
+      "pico:GND.8",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "led2:C",
+      "pico:GND.8",
+      "black",
+      [
+        "h-28.4",
+        "v-35.15"
+      ]
+    ],
+    [
+      "led3:C",
+      "pico:GND.8",
+      "black",
+      [
+        "h-28.4",
+        "v-92.75"
+      ]
+    ],
+    [
+      "pico:3V3",
+      "gas1:VCC",
+      "violet",
+      []
+    ],
+    [
+      "pico:GP26",
+      "gas1:AOUT",
+      "orange",
+      []
+    ],
+    [
+      "r1:2",
+      "led3:A",
+      "red",
+      [
+        "h37.2",
+        "v-28.8"
+      ]
+    ],
+    [
+      "r2:2",
+      "led2:A",
+      "gold",
+      [
+        "h56.4",
+        "v-105.6"
+      ]
+    ],
+    [
+      "r3:2",
+      "led1:A",
+      "limegreen",
+      [
+        "h66",
+        "v-182.4"
+      ]
+    ],
+    [
+      "pico:GP15",
+      "r1:1",
+      "red",
+      [
+        "v6.39",
+        "h118.75",
+        "v-48"
+      ]
+    ],
+    [
+      "pico:GP14",
+      "r2:1",
+      "gold",
+      [
+        "h-15.65",
+        "v25.59",
+        "h144",
+        "v-38.4"
+      ]
+    ],
+    [
+      "pico:GP13",
+      "r3:1",
+      "limegreen",
+      [
+        "h-25.25",
+        "v54.39",
+        "h163.2"
+      ]
+    ],
+    [
+      "gas1:GND",
+      "pico:GND.6",
+      "black",
+      []
+    ]
   ],
   "dependencies": {}
 }

@@ -1,26 +1,32 @@
 # =========================================================================
-#  RETO 07 - Smart Analog Monitor
+#  RETO 07 (BONUS) - Smart Analog Monitor con sensor de gas
 #  Sesion 07: ADC y acondicionamiento de senal
 #  Angel Rugerio Jiménez #201720
 #
-#  Lee la senal del potenciometro en GP26 (ADC0) y la acondiciona:
-#  raw -> promedio movil -> voltaje y % -> NORMAL / WARNING / ALARM -> LED.
-#  El estado lo decide la senal FILTRADA, nunca una lectura aislada.
+#  El mismo monitor de main.py, pero la senal viene del sensor de gas
+#  (wokwi-gas-sensor, tipo MQ-2) en lugar del potenciometro: su salida
+#  analogica AOUT va a GP26 (ADC0). Solo se probo en Wokwi.
+#
+#  El algoritmo no cambia: raw -> promedio movil -> voltaje y % ->
+#  NORMAL / WARNING / ALARM -> LED. Lo que cambia es el SIGNIFICADO:
+#  mas gas -> mas voltaje en AOUT -> mas %. El % es del rango del ADC,
+#  no una concentracion en ppm (eso requiere calibrar el sensor).
 # =========================================================================
 
 from machine import Pin, ADC
 from time import sleep_ms
 
 # ===== Hardware =====
-sensor = ADC(Pin(26))           # GP26 - ADC0, cursor del potenciometro
+sensor = ADC(Pin(26))           # GP26 - ADC0, salida AOUT del sensor de gas
 green = Pin(13, Pin.OUT)        # GP13 - LED verde    (NORMAL)
 yellow = Pin(14, Pin.OUT)       # GP14 - LED amarillo (WARNING)
 red = Pin(15, Pin.OUT)          # GP15 - LED rojo     (ALARM)
 
 # ===== Parametros =====
 VREF = 3.3          # V. Voltaje de referencia del ADC de la Pico
-WARNING = 50        # % a partir del cual el estado es WARNING
-ALARM = 75          # % a partir del cual el estado es ALARM
+# Umbrales del DO 02: A = 50/75 (base), B = 40/60, C = 60/80
+WARNING = 50        # % a partir del cual el estado es WARNING (gas en aumento)
+ALARM = 75          # % a partir del cual el estado es ALARM (concentracion peligrosa)
 WINDOW_SIZE = 10    # Lecturas que promedia el filtro
 PERIODO_MS = 300    # Tiempo entre lecturas -> el filtro cubre 10 x 300 ms = 3 s
 
@@ -79,8 +85,8 @@ def print_status(raw, filtered, voltage, percent, state):
 
 
 # ===== Inicio =====
-print("RETO 07 - Smart Analog Monitor")
-print("Sensor: GP26 (ADC0) | LEDs: GP13 verde, GP14 amarillo, GP15 rojo")
+print("RETO 07 (BONUS) - Smart Analog Monitor con sensor de gas")
+print("Sensor: gas, AOUT -> GP26 (ADC0) | LEDs: GP13 verde, GP14 amarillo, GP15 rojo")
 print("Umbrales: WARNING >=", WARNING, "% | ALARM >=", ALARM, "% | Filtro:", WINDOW_SIZE, "lecturas")
 
 # Todos los LEDs apagados antes de la primera lectura

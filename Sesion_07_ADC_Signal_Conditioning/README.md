@@ -1,7 +1,7 @@
 # Sesión 07 — ADC y acondicionamiento de señal
 
 **Reto 07 — Smart Analog Monitor**
-_Angel Rugerio Jiménez · 201720 — Axel García Arellano · 201251 · Lab. de Elementos Programables_
+_Angel Rugerio Jiménez · 201720 · Lab. de Elementos Programables_
 
 ---
 
@@ -9,7 +9,7 @@ _Angel Rugerio Jiménez · 201720 — Axel García Arellano · 201251 · Lab. de
 
 Construir un **monitor analógico** con la Raspberry Pi Pico: leer una señal en GP26 / ADC0, convertirla a voltaje y porcentaje, suavizarla con un **promedio móvil**, clasificarla en **NORMAL / WARNING / ALARM** y encender el LED que corresponde.
 
-Hasta la Sesión 06 la Pico **producía** niveles intermedios con PWM. Ahora los **lee**: deja de preguntar "¿encendido o apagado?" y empieza a preguntar "¿cuánto?". El potenciómetro simula la salida de un sensor ya acondicionado (luz, temperatura, presión, nivel); lo que se evalúa no es mover la perilla, sino cómo una señal se convierte en una decisión:
+Hasta la Sesión 06 la Pico **producía** niveles intermedios con PWM. Ahora los **lee**: deja de preguntar "¿encendido o apagado?" y empieza a preguntar "¿cuánto?". El potenciómetro simula la salida de un sensor ya acondicionado (luz, temperatura, presión, nivel):
 
 ```
 señal analógica → ADC → raw → promedio móvil → voltaje / % → estado → LED + serial
@@ -19,20 +19,20 @@ señal analógica → ADC → raw → promedio móvil → voltaje / % → estado
 
 | Elemento | Pin | Conexión |
 |---|---|---|
-| Potenciómetro 10 kΩ | GP26 / ADC0 | `SIG → GP26`, `VCC → 3V3`, `GND → GND` |
+| Potenciómetro 50 kΩ (B50K) | GP26 / ADC0 | `SIG → GP26`, `VCC → 3V3`, `GND → GND` |
 | LED verde (NORMAL) | GP13 | `GP13 → resistencia → LED → GND` |
 | LED amarillo (WARNING) | GP14 | `GP14 → resistencia → LED → GND` |
 | LED rojo (ALARM) | GP15 | `GP15 → resistencia → LED → GND` |
 
 Los extremos del potenciómetro van a **3V3** y **GND**, y el cursor a GP26: el cursor entrega un voltaje entre 0 V y 3.3 V según su posición. **Nunca 5 V en GP26**: las entradas ADC de la Pico solo toleran hasta 3.3 V, por eso el potenciómetro se alimenta de `3V3` y no de `VBUS`.
 
-[`wokwi/diagram.json`](./wokwi/diagram.json) tiene las mismas conexiones que la plantilla del curso, con dos diferencias: la placa es una **Pico W** con MicroPython 1.28, y las resistencias de los LEDs son de **1 kΩ** en vez de 330 Ω (los LEDs brillan menos, la lógica no cambia).
+[`wokwi/diagram_pot.json`](./wokwi/diagram_pot.json) es este circuito, el de `main.py` y la placa física: las mismas conexiones que la plantilla del curso, con dos diferencias. La placa es una **Pico W** con MicroPython 1.28, y las resistencias de los LEDs son de **1 kΩ** en vez de 330 Ω (los LEDs brillan menos, la lógica no cambia). [`wokwi/diagram.json`](./wokwi/diagram.json) es la variante del bonus, con el potenciómetro cambiado por un sensor de gas (sección 6.1).
 
 ## 3. Qué es el ADC y qué significa `read_u16()`
 
 Un **ADC** (convertidor analógico-digital) hace dos cosas:
 
-1. **Muestreo:** toma el voltaje del pin en un instante. Aquí el periodo de muestreo lo pone el programa: una lectura cada `PERIODO_MS = 300 ms`.
+1. **Muestreo:** toma el voltaje del pin en un instante. Aquí el periodo de muestreo lo pone el programa: una lectura cada `PERIODO_MS = 300 ms (de forma inicial)`.
 2. **Cuantización:** convierte ese voltaje en un número entero.
 
 `sensor.read_u16()` devuelve ese número **normalizado a 16 bits**: de `0` (0 V) a `65535` (3.3 V), porque $2^{16} - 1 = 65535$. Solo GP26, GP27 y GP28 tienen ADC (canales 0, 1 y 2); esta práctica usa **GP26 / ADC0**.
@@ -68,9 +68,6 @@ def to_percent(raw):
 | 65535 | 3.30 V | 100.0 % |
 
 Es la conversión de la Sesión 06 al revés: allá `duty = percent * 65535 / 100` (de porcentaje a 16 bits), aquí `percent = raw * 100 / 65535` (de 16 bits a porcentaje).
-
-> [!NOTE]
-> **Por qué en la consola aparece `%: 50.0 | state: NORMAL`.** La mitad exacta de 65535 es 32767.5, que no es una lectura posible. Con `raw = 32767` el porcentaje real es **49.999 %**: `round(…, 1)` lo muestra como `50.0`, pero no alcanza el umbral de `WARNING = 50`. El estado es correcto; lo que se redondea es solo lo que se imprime.
 
 ## 5. El filtro: promedio móvil
 
@@ -123,16 +120,37 @@ Cada comparación ya es `True`/`False`, que `value()` toma como `1`/`0`: las tre
 
 **Por qué 50 y 75.** Son los valores de la clase y dividen el rango en tres zonas: la mitad inferior es operación normal, el siguiente cuarto es una advertencia con margen para reaccionar, y el último cuarto exige acción. Para un sensor real dependerían de qué significa el porcentaje: un umbral es una decisión de ingeniería, no un número mágico.
 
-### DO 02 — Tres configuraciones de umbrales
+### _DO 02 — Tres configuraciones de umbrales_
 
-> [!NOTE]
-> Llenar al probar en Wokwi cambiando `WARNING` y `ALARM` al inicio de `main.py`.
+> [!Note]
+> Se uso un sensor de gas para cambiar al potenciometro, corriendo todo en Wokwi y no en la placa física.
 
 | Configuración | WARNING | ALARM | Observación |
 |---|---|---|---|
-| A (base) | 50 | 75 | |
-| B | 40 | 60 | |
-| C | | | |
+| A (base) | 50 | 75 | Funcionamiento normal |
+| B | 40 | 60 | Cambio más repentino al estado de "ALARM" |
+| C | 60 | 80 | Umbral más amplio de aceptación antes de pasar a "ALARM" |
+
+### 6.1 Bonus — Cambiar el sensor: gas en lugar de potenciómetro
+
+La presentación propone cambiar el potenciómetro por otro sensor para demostrar que **el algoritmo no depende del potenciómetro**. Aquí se usó el sensor de gas de Wokwi (`wokwi-gas-sensor`, tipo MQ-2), solo en simulación, con [`wokwi/diagram.json`](./wokwi/diagram.json) y [`wokwi/sensor.py`](./wokwi/sensor.py):
+
+| Sensor de gas | Pico | Antes (potenciómetro) |
+|---|---|---|
+| `AOUT` (salida analógica) | GP26 / ADC0 | `SIG` |
+| `VCC` | 3V3 | `VCC` |
+| `GND` | GND | `GND` |
+
+**Qué cambia en el código: prácticamente nada.** `sensor.py` es `main.py` con otros comentarios y otro mensaje de arranque; lectura, filtro, conversión, clasificación y LEDs son idénticos. Eso es justo lo que se quería demostrar: como el programa trabaja sobre un voltaje entre 0 y 3.3 V, no le importa si ese voltaje sale de una perilla o de un sensor.
+
+**Lo que sí cambia es el significado del número:**
+
+- **Más gas → más voltaje en `AOUT` → más %.** La dirección es la misma que con el potenciómetro, así que NORMAL / WARNING / ALARM siguen teniendo sentido sin invertir nada: más gas es más peligro.
+- **El % es del rango del ADC, no una concentración.** Pasar de voltaje a ppm (partes por millón) requiere calibrar el sensor con su curva de respuesta, que no es lineal; eso queda fuera de esta práctica. Por eso los umbrales se eligieron **observando** el comportamiento en el DO 02, no a partir de una norma de ppm.
+- **El DO 02 cobra sentido con un sensor real:** con el potenciómetro cualquier umbral es arbitrario; con gas, bajar los umbrales (B: 40/60) adelanta la alarma y la vuelve más sensible, y subirlos (C: 60/80) tolera más gas antes de alarmar.
+
+> [!WARNING]
+> **En físico no se conecta igual.** Un MQ-2 real se alimenta a **5 V** (su calefactor lo necesita), y entonces `AOUT` puede llegar a 5 V, por arriba del límite de 3.3 V del ADC. Montarlo en la placa exigiría un **divisor de voltaje** entre `AOUT` y GP26, además de un precalentamiento de varios minutos antes de que la lectura sea estable. En Wokwi el sensor se alimentó de 3V3, así que su salida no rebasa el rango.
 
 ## 7. Arquitectura del código
 
@@ -169,38 +187,30 @@ En la segunda línea de `75.0 | WARNING` pasa lo mismo que con el 50 %: el filtr
 
 ## 8. Pruebas
 
-La prueba se corre en la simulación (wokwi.com, RP2040) y en la placa física (Pico 2 W, RP2350) con el mismo `main.py`. **Wokwi es evidencia de lógica; el hardware es evidencia de implementación.** En Wokwi el potenciómetro es casi ideal; el ruido que justifica el filtro se ve de verdad en la placa.
-
-> [!NOTE]
-> Llenar con ✅ / ❌ al correr cada prueba.
+La prueba se corre en la simulación (wokwi.com, RP2040) y en la placa física (Pico 2 W, RP2350) con el mismo `main.py`. **Wokwi es evidencia de lógica; el hardware es evidencia de implementación.**
 
 | Prueba | Resultado esperado | Wokwi | Físico |
 |---|---|---|---|
-| ADC mínimo | raw cercano a 0 / 0 % | | |
-| ADC medio | raw cercano a 32767 / 50 % | | |
-| ADC máximo | raw cercano a 65535 / 100 % | | |
-| Filtro | La señal filtrada cambia suavemente | | |
-| Normal | LED verde activo | | |
-| Warning | LED amarillo activo | | |
-| Alarm | LED rojo activo | | |
-| Recuperación | Vuelve de ALARM a NORMAL al bajar la señal | | |
+| ADC mínimo | raw cercano a 0 / 0 % | ✅ | ✅ |
+| ADC medio | raw cercano a 32767 / 50 % | ✅ | ✅ |
+| ADC máximo | raw cercano a 65535 / 100 % | ✅ | ✅ |
+| Filtro | La señal filtrada cambia suavemente | ✅ | ✅ |
+| Normal | LED verde activo | ✅ | ✅ |
+| Warning | LED amarillo activo | ✅ | ✅ |
+| Alarm | LED rojo activo | ✅ | ✅ |
+| Recuperación | Vuelve de ALARM a NORMAL al bajar la señal | ✅ | ✅ |
 
-### DO 01 — Cinco posiciones del potenciómetro
+### _DO 01 — Cinco posiciones del potenciómetro_
+
+> Probado con el montaje físico, corriendo `01_voltage_percent.py` (código de clase). Rangos tomados de las capturas en [`evidence/DO_01/`](./evidence/DO_01/).
 
 | Posición | Raw | Voltaje | % |
 |---|---|---|---|
-| Mínima | | | |
-| 25 % | | | |
-| 50 % | | | |
-| 75 % | | | |
-| Máxima | | | |
-
-**Verificación de la lógica fuera de la placa.** `main.py` se corrió en la computadora con `machine.ADC` reemplazado por una secuencia de lecturas conocidas (mínimo, medio, máximo, señal con ruido de ±1.8 % alrededor de 52 %, y caída a 0) y `machine.Pin` registrando los LEDs. Resultados:
-
-- **Bordes de los umbrales:** 49.99 % → NORMAL, 50 % → WARNING, 74.99 % → WARNING, 75 % → ALARM.
-- **Filtro:** con la lectura cruda saltando entre 50.6 % y 53.7 %, la filtrada se quedó entre 52.0 % y 52.1 % en cuanto la ventana se llenó con esas lecturas.
-- **LEDs:** en las 64 lecturas hubo siempre **exactamente un** LED encendido.
-- **Recuperación:** de ALARM a WARNING y a NORMAL al bajar la señal, sin quedarse atorado.
+| Mínima | 192 - 240 | 0.01 | 0.3 - 0.4 |
+| 25 % | 16'388 - 16'740 | 0.83 - 0.84 | 25.0 - 25.5 |
+| 50 % | 32'824 - 33'496 | 1.65 - 1.69 | 50.1 - 51.1 |
+| 75 % | 48'779 - 49'804 | 2.46 - 2.51 | 74.4 - 76.0 |
+| Máxima | 65'295 - 65'535 | 3.29 - 3.3 | 99.6 - 100.0 |
 
 ## 9. Pregunta de análisis
 
@@ -211,7 +221,7 @@ Porque una alarma debe responder a lo que **hace la señal**, no a una lectura a
 El promedio móvil hace que el estado dependa de las últimas 10 lecturas en conjunto: un pico aislado pesa una décima parte y no alcanza a mover el promedio sobre el umbral. El costo es el retraso de la sección 5: el sistema tarda más en reaccionar a un cambio real. Filtrar es elegir cuánta estabilidad se cambia por cuánta rapidez.
 
 > [!NOTE]
-> El filtro **reduce** el parpadeo en el borde de un umbral, pero no lo elimina: si el promedio mismo queda en 50.0 %, el ruido residual puede seguir cruzándolo. Si aparece en la placa, se anota en la sección 11.
+> El filtro **reduce** el parpadeo en el borde de un umbral, pero no lo elimina: si el promedio mismo queda en 50.0 %, el ruido residual puede seguir cruzándolo.
 
 ## 10. Evidencias
 
@@ -219,20 +229,16 @@ El promedio móvil hace que el estado dependa de las últimas 10 lecturas en con
 |---|---|
 | Simulación Wokwi | [`wokwi/enlace_o_captura.md`](./wokwi/enlace_o_captura.md) |
 | Serial con raw, voltaje y porcentaje | [`evidence/serial_raw_voltage.png`](./evidence/serial_raw_voltage.png) |
-| Alarma por umbrales (NORMAL / WARNING / ALARM) | [`evidence/threshold_alarm.png`](./evidence/threshold_alarm.png) |
+| Alarma por umbrales en la placa (LED + serial) | NORMAL: [`evidence/threshold_alarm_0.jpg`](./evidence/threshold_alarm_0.jpg) · WARNING: [`evidence/threshold_alarm_1.jpg`](./evidence/threshold_alarm_1.jpg) · ALARM: [`evidence/threshold_alarm_2.jpg`](./evidence/threshold_alarm_2.jpg) |
 | Montaje físico | [`evidence/hardware_photo.jpg`](./evidence/hardware_photo.jpg) |
 
 ## 11. Problemas encontrados
-
-> [!NOTE]
-> Completar con lo que salga al correr las pruebas.
 
 - **`%: 50.0` con estado NORMAL.** No es un error: 32767 es 49.999 % y el `round()` del reporte lo muestra como 50.0 (sección 4).
 
 ## 12. Conclusión
 
-> [!NOTE]
-> Completar al tener los resultados de Wokwi y de la placa.
+Con esta práctica entendí que el ADC le permite a la Pico dejar de preguntar si algo está encendido o apagado, y empezar a medir cuánto. El número que entrega `read_u16()` por sí solo no dice mucho, así que lo convertí a voltaje y a porcentaje para poder trabajar con él. Al probar en la placa física noté que la lectura nunca se queda quieta: en el 75 % el valor crudo cruzaba el umbral de ALARM una y otra vez sin que yo moviera el potenciómetro. Por eso el promedio móvil fue lo más importante del reto, ya que con él el estado se mantuvo estable, aunque a cambio el sistema tarda unos segundos en reaccionar (algo que puede llegar a molestar o ser peligroso). También vi claro que los umbrales no son números fijos, sino una decisión que depende de qué tan rápido quieres que el sistema avise. Al cambiar el potenciómetro por el sensor de gas en Wokwi, el código casi no cambió, lo que demuestra que el algoritmo no depende del sensor que se use. Al final, la simulación me sirvió para validar la lógica, pero fue en la placa donde realmente se vio por qué hay que acondicionar la señal antes de tomar una decisión.
 
 ---
 
@@ -241,11 +247,14 @@ El promedio móvil hace que el estado dependa de las últimas 10 lecturas en con
 | Archivo / carpeta | Contenido |
 |---|---|
 | `main.py` | Smart Analog Monitor: lectura ADC, filtro, clasificación y LEDs |
-| `wokwi/diagram.json` | Circuito de la simulación (Pico W + potenciómetro + 3 LEDs) |
+| `wokwi/diagram_pot.json` | Circuito de `main.py` (Pico W + potenciómetro + 3 LEDs) |
+| `wokwi/diagram.json` | Bonus: el mismo circuito con el sensor de gas en lugar del potenciómetro |
+| `wokwi/sensor.py` | Bonus: el monitor adaptado al sensor de gas (solo Wokwi) |
 | `wokwi/enlace_o_captura.md` | Enlace a la simulación publicada |
 | `evidence/` | Capturas del serial y de los estados, y foto del montaje físico |
+| `evidence/DO_01` | Capturas del serial para el DO_01 |
 
-**Simulación:** en wokwi.com, proyecto Raspberry Pi Pico + MicroPython; pegar `wokwi/diagram.json` y `main.py`. Para mover el potenciómetro, click sobre él en la simulación y arrastrar la perilla.
+**Simulación:** en wokwi.com, proyecto Raspberry Pi Pico + MicroPython; pegar `wokwi/diagram_pot.json` (como `diagram.json`) y `main.py`. Para mover el potenciómetro, click sobre él en la simulación y arrastrar la perilla. Para el bonus: `wokwi/diagram.json` y `wokwi/sensor.py` (como `main.py`); la concentración de gas se cambia dando click al sensor durante la simulación.
 
 **Hardware:**
 
