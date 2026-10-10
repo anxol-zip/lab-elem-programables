@@ -225,12 +225,13 @@ El promedio móvil hace que el estado dependa de las últimas 10 lecturas en con
 
 ## 10. Evidencias
 
-| Evidencia | Archivo |
-|---|---|
-| Simulación Wokwi | [`wokwi/enlace_o_captura.md`](./wokwi/enlace_o_captura.md) |
-| Serial con raw, voltaje y porcentaje | [`evidence/serial_raw_voltage.png`](./evidence/serial_raw_voltage.png) |
+| Evidencia                                      | Archivo                                                                                                                                                                                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Simulación Wokwi                               | [`wokwi/enlace_o_captura.md`](./wokwi/enlace_o_captura.md)                                                                                                                                                                                 |
+| Serial con raw, voltaje y porcentaje           | [`evidence/serial_raw_voltage.png`](./evidence/serial_raw_voltage.png)                                                                                                                                                                     |
 | Alarma por umbrales en la placa (LED + serial) | NORMAL: [`evidence/threshold_alarm_0.jpg`](./evidence/threshold_alarm_0.jpg) · WARNING: [`evidence/threshold_alarm_1.jpg`](./evidence/threshold_alarm_1.jpg) · ALARM: [`evidence/threshold_alarm_2.jpg`](./evidence/threshold_alarm_2.jpg) |
-| Montaje físico | [`evidence/hardware_photo.jpg`](./evidence/hardware_photo.jpg) |
+| Montaje físico                                 | [`evidence/hardware_photo.jpg`](./evidence/hardware_photo.jpg)                                                                                                                                                                             |
+| Video de funcionamiento                        | [`evidence/working.mp4`](./evidence/working.mp4)                                                                                                                                                                                           |
 
 ## 11. Problemas encontrados
 
