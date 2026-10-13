@@ -1,0 +1,11 @@
+📢 Sesión 08: Procesamiento Multihilo / Dual-Core
+
+Esta sesión se realizará principalmente en simulación Wokwi. No se requiere material nuevo.
+
+Si tienen su Raspberry Pi Pico/Pico W/Pico 2 W disponible, conéctenla a la computadora con cable USB de datos para hacer una prueba física de _thread / dual-core.
+
+Usaremos material de sesiones anteriores: LEDs, resistencias, botón y potenciómetro o sensor analógico.
+
+Objetivo: construir un sistema multitarea donde una tarea monitorea un sensor crítico y otra actualiza LEDs, alarmas y terminal sin bloquear el programa.
+
+Entregable: carpeta GitHub Sesion_08_DualCore_Multitarea con código Wokwi, código físico si aplica, capturas del serial/circuito, tabla de pruebas y README técnico.
