@@ -2,20 +2,13 @@
 #  RETO 08 - Sistema multitarea (version Wokwi)
 #  Sesion 08: Procesamiento multihilo / Dual-Core
 #  Angel Rugerio Jiménez #201720
-#
-#  Multitarea COOPERATIVA en un solo nucleo: cada tarea corre cuando le
-#  toca segun ticks_ms(), y ninguna se queda esperando (sin sleep largo).
-#    sensor  cada 20 ms   -> ADC -> promedio movil -> % -> estado
-#    boton   cada 50 ms   -> flanco 1 -> 0: ACK en ALARM, reset del contador fuera
-#    UI      cada 200 ms  -> LEDs de estado + heartbeat
-#    log     cada 1000 ms -> serial
 # =========================================================================
 
 from machine import Pin, ADC
 from time import ticks_ms, ticks_diff, sleep_ms
 
 # ===== Hardware =====
-adc = ADC(26)                           # GP26 - ADC0, cursor del potenciometro
+adc = ADC(28)                           # GP28 - ADC2, cursor del potenciometro
 led_normal = Pin(13, Pin.OUT)           # GP13 - LED verde    (NORMAL)
 led_warning = Pin(14, Pin.OUT)          # GP14 - LED amarillo (WARNING)
 led_alarm = Pin(15, Pin.OUT)            # GP15 - LED rojo     (ALARM)
@@ -43,7 +36,7 @@ alarm_ack = False
 last_button = 1
 alarm_blink = False
 
-# Ventana deslizante del promedio movil
+# Ventana del promedio movil
 buffer = []
 
 # Cuando le toca a cada tarea
@@ -154,8 +147,8 @@ def button_task():
 
 # ===== Inicio =====
 print("RETO 08 - Sistema multitarea (Wokwi, un nucleo)")
-print("Sensor 20 ms | Boton 50 ms | UI 200 ms | Log 1000 ms")
-print("Umbrales: WARNING >=", WARNING, "% | ALARM >=", ALARM, "% | Filtro:", BUFFER_SIZE, "lecturas")
+print(f"Sensor: {sensor_period} ms | Boton: {button_period} ms | UI: {ui_period} ms | Log: {log_period} ms")
+print(f"Umbrales: WARNING >= {WARNING}% | ALARM >= {ALARM}% | Filtro: {BUFFER_SIZE} lecturas")
 print("Boton: en ALARM = ACK (rojo fijo) | fuera de ALARM = reset del contador")
 
 # Scheduler cooperativo: cada vuelta revisa a quien le toca, lo corre y sigue.
@@ -180,3 +173,4 @@ while True:
         next_log = now + log_period
 
     sleep_ms(2)
+    

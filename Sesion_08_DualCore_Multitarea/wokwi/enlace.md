@@ -3,4 +3,4 @@
 > [!Info] Elaborado por:
 > Angel Rugerio Jiménez #201720
 
-**Enlace:** <!-- TODO: pegar el link del proyecto de Wokwi -->
+**Enlace:** https://wokwi.com/projects/477448340995178497

@@ -14,7 +14,7 @@ from time import ticks_ms, ticks_diff, sleep_ms
 import _thread
 
 # ===== Hardware =====
-adc = ADC(26)                           # GP26 - ADC0, cursor del potenciometro
+adc = ADC(28)                           # GP28 - ADC2, cursor del potenciometro
 led_normal = Pin(13, Pin.OUT)           # GP13 - LED verde    (NORMAL)
 led_warning = Pin(14, Pin.OUT)          # GP14 - LED amarillo (WARNING)
 led_alarm = Pin(15, Pin.OUT)            # GP15 - LED rojo     (ALARM)
@@ -187,7 +187,7 @@ def log_task():
 
 # ===== Inicio =====
 print("RETO 08 - Sistema multitarea (Pico fisica, dual-core)")
-print("Core 1: sensor cada 20 ms | Core 0: boton 50 ms, UI 200 ms, log 1000 ms")
+print(f"Core 1: sensor cada {sensor_period} ms | Core 0: boton {button_period} ms, UI {ui_period} ms, log {log_period} ms")
 print("Umbrales: WARNING >=", WARNING, "% | ALARM >=", ALARM, "% | Filtro:", BUFFER_SIZE, "lecturas")
 
 _thread.start_new_thread(sensor_core, ())

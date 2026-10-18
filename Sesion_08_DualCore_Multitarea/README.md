@@ -5,7 +5,7 @@ _Angel Rugerio Jiménez · 201720 · Lab. de Elementos Programables_
 
 ## 1. Objetivo y qué es multitarea
 
-Una tarea **monitorea un sensor crítico** (potenciómetro en GP26) cada 20 ms mientras otras atienden botón, LEDs y serial, **sin que ninguna bloquee a las demás**.
+Una tarea **monitorea un sensor crítico** (potenciómetro en GP28) cada 20 ms mientras otras atienden botón, LEDs y serial, **sin que ninguna bloquee a las demás**.
 
 **Multitarea** es organizar el programa en tareas con su propio ritmo en vez de una sola fila con `sleep`. Se hizo de dos formas:
 
@@ -27,16 +27,14 @@ Una tarea **monitorea un sensor crítico** (potenciómetro en GP26) cada 20 ms m
 
 **La Pico física** prueba el **paralelismo**: Core 1 sigue midiendo aunque Core 0 esté imprimiendo. Los núcleos comparten el diccionario `shared`, y todo acceso va entre `lock.acquire()` / `lock.release()` para que Core 0 nunca lea datos a medio actualizar. El cálculo se hace fuera del lock para tenerlo el menor tiempo posible.
 
-Simulación: [`wokwi/enlace.md`](./wokwi/enlace.md) · Circuito: [`wokwi/diagram.json`](./wokwi/diagram.json) (plantilla del curso).
+Simulación: [`wokwi/enlace.md`](./wokwi/enlace.md) · Circuito: [`wokwi/diagram.json`](./wokwi/diagram.json) (Pico W: mismo pinout que la Pico 2 W física).
 
-| Elemento | Pin | Función |
-|---|---|---|
-| Potenciómetro (3V3 / GND) | GP26 / ADC0 | Sensor crítico |
-| LED verde / amarillo / rojo | GP13 / GP14 / GP15 | NORMAL / WARNING / ALARM |
-| LED azul | GP12 | Heartbeat |
-| Botón a GND (`PULL_UP`) | GP16 | ACK en ALARM / reset del contador fuera de ALARM |
-
-<!-- TODO Angel: anotar el valor de las resistencias de la placa si no son 330 Ω. -->
+| Elemento                    | Pin                | Función                                          |
+| --------------------------- | ------------------ | ------------------------------------------------ |
+| Potenciómetro (3V3 / GND)   | GP28 / ADC2        | Sensor crítico                                   |
+| LED verde / amarillo / rojo | GP13 / GP14 / GP15 | NORMAL / WARNING / ALARM                         |
+| LED azul                    | GP12               | Heartbeat                                        |
+| Botón a GND (`PULL_UP`)     | GP16               | ACK en ALARM / reset del contador fuera de ALARM |
 
 ## 3. Umbrales y botón
 
@@ -50,29 +48,25 @@ Los umbrales son constantes (`WARNING`, `ALARM`) al inicio de ambos archivos. El
 
 ## 4. Qué hace el filtro
 
-Promedio móvil de las últimas 8 lecturas (`append` + `pop(0)`, como en el Reto 07). Con una lectura cada 20 ms la ventana cubre $8 \times 20\ \text{ms} = 160\ \text{ms}$: quita el ruido del ADC con un retraso que no se percibe (en el Reto 07 eran 3 s).
-
-<!-- TODO Angel: con el potenciómetro quieto en la placa, anotar el rango de raw vs filtered (p. ej. "raw varió X cuentas, filtered Y"). En Wokwi raw = filtered porque el pot simulado no tiene ruido. -->
+Promedio móvil de las últimas 8 lecturas (`append` + `pop(0)`, como en el Reto 07). Con una lectura cada 20 ms la ventana cubre $8 \times 20\ \text{ms} = 160\ \text{ms}$: quita el ruido del ADC con un retraso que no se percibe (en el Reto 07 eran 3 s). En la placa física, `raw` varió ~100-130 cuentas, `filtered` ~90; en Wokwi raw = filtered porque el pot simulado no tiene ruido.
 
 ## 5. Resultados de la tabla de pruebas
 
-<!-- TODO Angel: PASS/FAIL según lo observado. -->
+| Prueba               | Resultado esperado                     | Wokwi | Físico |
+| -------------------- | -------------------------------------- | ----- | ------ |
+| Potenciómetro bajo   | NORMAL / LED verde                     | ✅     | ✅      |
+| Potenciómetro medio  | WARNING / LED amarillo                 | ✅     | ✅      |
+| Potenciómetro alto   | ALARM / rojo parpadea                  | ✅     | ✅      |
+| Botón fuera de ALARM | No reconoce alarma (reinicia contador) | ✅     | ✅      |
+| Botón durante ALARM  | ACK=True / rojo fijo                   | ✅     | ✅      |
+| Salir de ALARM       | ACK vuelve a False                     | ✅     | ✅      |
+| Heartbeat            | LED azul cambia sin congelarse         | ✅     | ✅      |
+| Serial               | Muestra datos cada segundo             | ✅     | ✅      |
+| Sensor a 20 ms       | ~50 muestras por segundo (`rate=`)     | ✅     | ✅      |
+| Filtro               | Reduce variaciones rápidas             | ✅     | ✅      |
+| Pico física          | `_thread` mantiene adquisición y UI    | —     | ✅      |
 
-| Prueba | Resultado esperado | Wokwi | Físico |
-|---|---|---|---|
-| Potenciómetro bajo | NORMAL / LED verde | | |
-| Potenciómetro medio | WARNING / LED amarillo | | |
-| Potenciómetro alto | ALARM / rojo parpadea | | |
-| Botón fuera de ALARM | No reconoce alarma (reinicia contador) | | |
-| Botón durante ALARM | ACK=True / rojo fijo | | |
-| Salir de ALARM | ACK vuelve a False | | |
-| Heartbeat | LED azul cambia sin congelarse | | |
-| Serial | Muestra datos cada segundo | | |
-| Sensor a 20 ms | ~50 muestras por segundo (`rate=`) | | |
-| Filtro | Reduce variaciones rápidas | | |
-| Pico física | `_thread` mantiene adquisición y UI | — | |
-
-`rate=` observado: Wokwi ___ /s · Pico ___ /s. <!-- TODO Angel -->
+`rate=` observado: Wokwi 49–50 /s · Pico 50 /s.
 
 ## 6. Preguntas de análisis
 
@@ -85,20 +79,21 @@ Promedio móvil de las últimas 8 lecturas (`append` + `pop(0)`, como en el Reto
 
 ## 7. Problemas encontrados
 
-- **Prevención: globales creadas después de lanzar el hilo** (error que reportó Axel García en su placa). En la Pico los dos núcleos corren sin GIL: si Core 0 crea una variable global nueva mientras Core 1 busca otra, Core 1 puede morir con un `NameError` falso y el sistema se queda en `INIT`. En la primera versión de este código la global `now` se creaba dentro del `while`, después de `start_new_thread`; ahora se crea antes.
-<!-- TODO Angel: lo que haya fallado al probar (p. ej. "OSError: core1 in use" al re-correr). -->
+- **Prevención: globales creadas después de lanzar el hilo**. Axel ayudó a ver que en la Pico los dos núcleos corren sin GIL: si Core 0 crea una variable global nueva mientras Core 1 busca otra, Core 1 puede morir con un `NameError` falso y el sistema se queda en `INIT`. En la primera versión de este código la global `now` se creaba dentro del `while`, después de `start_new_thread`; ahora se crea antes.
 
 ## 8. Conclusión
 
-<!-- TODO Angel: conclusión en primera persona. -->
+Realizar este challenge ayudó a que viera una visión más completa del funcionamiento de un microcontrolador y, de algún modo, una computadora. El aprender sobre cores, threads, y procesos es algo que me llama bastante la atención, ya que tienen que ver bastante con la optimización y la forma que corre un programa, además de la priorización de tareas (algo que antes aprovechaba para poder jugar a más FPS). Este fue solo un pequeño acercamiento a este mundo, sin embargo, ya proporciona la idea principal, delegar tareas distintas al mismo tiempo, para poder realizar operaciones más avanzadas en paralelo, que al final, van destinadas a un mismo objetivo. Espero poder aprender más con los challenges siguientes, y voy a investigar más por mi propia cuenta. Fue muy divertida de hacer.
 
 ## Evidencias y cómo correrlo
 
 | Evidencia | Archivo |
 |---|---|
 | Serial Wokwi (estados + ACK + reset) | [`evidence/serial_wokwi.png`](./evidence/serial_wokwi.png) |
-| Serial Pico (`samples_core1`, `rate=`) | [`evidence/serial_pico.png`](./evidence/serial_pico.png) |
-| Circuito | [`evidence/circuito.png`](./evidence/circuito.png) |
+| Circuito Wokwi (Pico W) | [`evidence/circuito_wokwi.png`](./evidence/circuito_wokwi.png) |
+| Serial Pico física (`samples_core1`, `rate=`) | [`evidence/serial_fisico.png`](./evidence/serial_fisico.png) |
+| Circuito físico | [`evidence/circuito_fisico.jpg`](./evidence/circuito_fisico.jpg) |
+| Video del sistema funcionando | [`evidence/video_fisico.mp4`](./evidence/video_fisico.mp4) |
 
-- **Wokwi:** proyecto Pico + MicroPython; pegar `wokwi/diagram.json` y `main_wokwi.py` como `main.py`. Botón con click o tecla `A`.
+- **Wokwi:** proyecto Pico W + MicroPython; pegar `wokwi/diagram.json` y `main_wokwi.py` como `main.py`. Botón con click o tecla `A`.
 - **Pico:** `mpremote run main_dualcore_physical.py`. Si al re-correr sale `OSError: core1 in use`, reinicio suave (Ctrl-D) y otra vez.
