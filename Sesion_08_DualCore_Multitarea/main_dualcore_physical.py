@@ -5,7 +5,7 @@
 #
 #  Mismo sistema que main_wokwi.py, pero ahora en PARALELO real:
 #    Core 1 (hilo de _thread) -> ADC -> promedio movil -> % -> estado, cada 20 ms
-#    Core 0 (programa principal) -> boton, LEDs, heartbeat y serial
+#    Core 0 (programa principal) -> boton (ACK / reset), LEDs, heartbeat y serial
 #  Los dos nucleos se comunican por el diccionario shared, protegido con lock.
 # =========================================================================
 
@@ -50,9 +50,13 @@ last_button = 1
 alarm_blink = False
 last_samples = 0
 
-next_ui = ticks_ms()
-next_button = ticks_ms()
-next_log = ticks_ms()
+# TODAS las globales se crean ANTES de lanzar el hilo, now incluida. En la Pico
+# los dos nucleos corren sin GIL: si Core 0 crea una global nueva mientras
+# Core 1 busca otra (p. ej. classify), Core 1 puede recibir un NameError falso.
+now = ticks_ms()
+next_ui = now
+next_button = now
+next_log = now
 
 # Ventana del promedio movil: solo la usa Core 1, tampoco necesita lock
 buffer = []
@@ -141,16 +145,17 @@ def ui_task():
 # lock entre las dos cosas, Core 1 podria salir de ALARM justo en medio y el
 # ACK quedaria puesto sobre una alarma que ya no existe.
 def button_task():
-    global last_button
+    global last_button, last_samples
 
     current = button.value()
 
     if last_button == 1 and current == 0:
         lock.acquire()
         if shared["state"] == "ALARM":
-            shared["ack"] = True
+            shared["ack"] = True        # en ALARM: reconocer
             accepted = True
         else:
+            shared["samples"] = 0       # fuera de ALARM: reset del contador
             accepted = False
         lock.release()
 
@@ -158,7 +163,8 @@ def button_task():
         if accepted:
             print(">>> CORE 0: ALARMA RECONOCIDA | ACK=True")
         else:
-            print(">>> CORE 0: boton presionado, pero no hay ALARM")
+            last_samples = 0
+            print(">>> CORE 0: sin ALARM, contador de muestras reiniciado")
 
     last_button = current
 

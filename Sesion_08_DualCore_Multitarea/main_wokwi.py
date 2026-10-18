@@ -6,7 +6,7 @@
 #  Multitarea COOPERATIVA en un solo nucleo: cada tarea corre cuando le
 #  toca segun ticks_ms(), y ninguna se queda esperando (sin sleep largo).
 #    sensor  cada 20 ms   -> ADC -> promedio movil -> % -> estado
-#    boton   cada 50 ms   -> ACK de alarma por flanco 1 -> 0
+#    boton   cada 50 ms   -> flanco 1 -> 0: ACK en ALARM, reset del contador fuera
 #    UI      cada 200 ms  -> LEDs de estado + heartbeat
 #    log     cada 1000 ms -> serial
 # =========================================================================
@@ -136,16 +136,18 @@ def log_task():
 # mantenerlo presionado no genera mas eventos. Leer cada 50 ms tambien filtra
 # el rebote, que dura menos que eso.
 def button_task():
-    global alarm_ack, last_button
+    global alarm_ack, last_button, sample_count, last_sample_count
 
     current_button = button.value()
 
     if last_button == 1 and current_button == 0:
         if state == "ALARM":
-            alarm_ack = True
+            alarm_ack = True                # en ALARM: reconocer
             print(">>> ALARMA RECONOCIDA | ACK=True")
         else:
-            print(">>> Boton presionado, pero no hay ALARM")
+            sample_count = 0                # fuera de ALARM: reset del contador
+            last_sample_count = 0
+            print(">>> Sin ALARM: contador de muestras reiniciado")
 
     last_button = current_button
 
@@ -154,7 +156,7 @@ def button_task():
 print("RETO 08 - Sistema multitarea (Wokwi, un nucleo)")
 print("Sensor 20 ms | Boton 50 ms | UI 200 ms | Log 1000 ms")
 print("Umbrales: WARNING >=", WARNING, "% | ALARM >=", ALARM, "% | Filtro:", BUFFER_SIZE, "lecturas")
-print("ALARM sin ACK = rojo parpadea | con ACK = rojo fijo")
+print("Boton: en ALARM = ACK (rojo fijo) | fuera de ALARM = reset del contador")
 
 # Scheduler cooperativo: cada vuelta revisa a quien le toca, lo corre y sigue.
 # El unico sleep es de 2 ms, para no girar el loop en vacio.
