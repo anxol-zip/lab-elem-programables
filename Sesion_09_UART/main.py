@@ -4,7 +4,7 @@
 #  Angel Rugerio Jiménez #201720
 # =========================================================================
 #  Ruta de datos:
-#  Thonny/USB -> input() -> UART TX GP0 -> jumper -> UART RX GP1 -> parser -> LEDs -> respuesta
+#  VS Code/USB -> input() -> UART TX GP0 -> jumper -> UART RX GP1 -> parser -> LEDs -> respuesta
 #  Conexion: jumper GP0(TX) -> GP1(RX), LED1 en GP13, LED2 en GP14
 # =========================================================================
 
@@ -25,7 +25,9 @@ blink_timers = {"LED1": Timer(-1), "LED2": Timer(-1)}
 BLINK_MIN = 50          # ms, periodo minimo aceptado en BLINK
 BLINK_MAX = 5000        # ms, periodo maximo aceptado en BLINK
 
-HELP_TEXT = "PING | GET,STATUS | SET,<LED1|LED2|ALL>,<0|1> | TOGGLE,<LED1|LED2> | BLINK,<LED1|LED2>,<ms> | HELP"
+COMMANDS = ("PING", "GET,STATUS", "SET,<LED1|LED2|ALL>,<0|1>",
+            "TOGGLE,<LED1|LED2>", "BLINK,<LED1|LED2>,<ms>", "HELP")
+HELP_TEXT = " | ".join(COMMANDS)
 
 
 # ===== Transporte UART (version robusta v3 del profe) =====
@@ -165,10 +167,21 @@ def handle_frame(frame):
     return "ERR,UNKNOWN_FRAME"
 
 
+# ===== Interfaz en consola =====
+def print_banner():
+    print(50 * "=")
+    print(" CHALLENGE 09 - UART Command Center")
+    print(" LED1=GP13  LED2=GP14")
+    print(" UART0 9600 8N1 | Jumper GP0 -> GP1")
+    print(50 * "=")
+    print(" Comandos:")
+    for name in COMMANDS:
+        print("   " + name)
+    print(50 * "=")
+
+
 # ===== Programa principal =====
-print("CHALLENGE 09 - UART Command Center")
-print("Jumper requerido: GP0(TX) -> GP1(RX) | UART0 9600 8N1")
-print("Comandos:", HELP_TEXT)
+print_banner()
 
 while True:
     try:
@@ -176,18 +189,22 @@ while True:
     except KeyboardInterrupt:
         for name in LEDS:
             stop_blink(name)
-        print("Programa detenido")
+        print(50 * "=")
+        print(" Programa detenido")
+        print(50 * "=")
         break
 
     if not command:
         continue
 
-    print("USB CMD :", command)
+    print("  USB CMD : " + command)
     received = uart_roundtrip(command)
 
     if received is None:
-        print("UART RX : SIN DATOS. Revisa GP0->GP1")
+        print("  UART RX : SIN DATOS. Revisa GP0 -> GP1")
+        print(50 * "-")
         continue
 
-    print("UART RX :", received)
-    print("RESP    :", handle_frame(received))
+    print("  UART RX : " + received)
+    print("  RESP    : " + handle_frame(received))
+    print(50 * "-")

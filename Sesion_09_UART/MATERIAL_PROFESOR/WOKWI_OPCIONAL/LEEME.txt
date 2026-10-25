@@ -1,1 +1,0 @@
-Wokwi es opcional en esta version. Si el Serial Monitor UART no aparece, no detener la practica: usar la Pico fisica con Thonny. main.py usa print() como diagnostico USB visible.
