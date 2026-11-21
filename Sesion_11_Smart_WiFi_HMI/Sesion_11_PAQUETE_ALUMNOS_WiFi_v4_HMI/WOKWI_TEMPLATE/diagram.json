@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "author": "Prof. Luis Eduardo Arenas-Deseano",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-pi-pico-2w",
+      "id": "pico",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 38,
+      "left": 250,
+      "attrs": {
+        "value": "330"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led",
+      "top": 38,
+      "left": 350,
+      "attrs": {
+        "color": "green"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "pico:GP15",
+      "r1:1",
+      "green",
+      []
+    ],
+    [
+      "r1:2",
+      "led:A",
+      "green",
+      []
+    ],
+    [
+      "led:C",
+      "pico:GND.4",
+      "black",
+      []
+    ]
+  ],
+  "dependencies": {}
+}
