@@ -100,22 +100,28 @@ La OLED se redibuja después de cada petición y también una vez por segundo cu
 
 ## 5. Resultados de la tabla de pruebas
 
-| # | Prueba | Acción | Esperado | Resultado | Evidencia |
-| - | ------ | ------ | -------- | --------- | --------- |
-| 1 | Wi-Fi | Arrancar | IP local en Thonny | ⬜ | [`wifi_ip.png`](./evidence/wifi_ip.png) |
-| 2 | Dashboard | Abrir `/` | Dashboard visible | ⬜ | [`dashboard.png`](./evidence/dashboard.png) |
-| 3 | Slider = 0 | Mover a 0 | LED PWM apagado | ⬜ | — |
-| 4 | Slider = 37 | Mover a 37 | Brillo intermedio | ⬜ | [`slider_37.png`](./evidence/slider_37.png) |
-| 5 | Slider = 100 | Mover a 100 | Brillo máximo | ⬜ | [`slider_100.png`](./evidence/slider_100.png) |
-| 6 | TOGGLE LED 2 | Clic | GP14 cambia ON/OFF | ⬜ | [`led2_on.png`](./evidence/led2_on.png) |
-| 7 | OLED | Cambiar PWM y LED2 | Refleja PWM y LED2 | ⬜ | [`oled_status.jpg`](./evidence/oled_status.jpg) |
-| 8 | `/api/status` | Abrir la ruta | JSON correcto | ⬜ | [`api_status.png`](./evidence/api_status.png) |
-| 9 | PWM inválido | `/api/pwm?value=150` | Error 400 | ⬜ | — |
-| 10 | Ruta desconocida | `/ruta-que-no-existe` | Error 404 | ⬜ | [`error_404.png`](./evidence/error_404.png) |
-| B1 | Conexión | Abrir el dashboard / apagar la Pico | Punto verde ONLINE / rojo SIN RESPUESTA; LED integrado encendido con Wi-Fi | ⬜ | — |
-| B2 | Ambos LEDs | ALL ON / ALL OFF | GP15 al 100 % y GP14 ON / los dos apagados | ⬜ | — |
-| B3 | NTP | Arrancar con Internet | Hora local correcta en la OLED, la página y `/api/status` | ⬜ | — |
-| B4 | ADC | Mover el potenciómetro | `adc` cambia en `/api/status`, la página y la OLED | ⬜ | — |
+| #   | Prueba           | Acción                              | Esperado                                                                   | Resultado | Evidencia                                                                                      |
+| --- | ---------------- | ----------------------------------- | -------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------- |
+| 1   | Wi-Fi            | Arrancar                            | IP local en la terminal                                                    | ✅         | [`wifi_ip.png`](./evidence/wifi_ip.png)                                                        |
+| 2   | Dashboard        | Abrir `/`                           | Dashboard visible                                                          | ✅         | [`dashboard.png`](./evidence/dashboard.png)                                                    |
+| 3   | Slider = 0       | Mover a 0                           | LED PWM apagado                                                            | ✅         | [`video.mp4`](./evidence/video.mp4)                                                            |
+| 4   | Slider = 37      | Mover a 37                          | Brillo intermedio                                                          | ✅         | [`slider_37.png`](./evidence/slider_37.png)                                                    |
+| 5   | Slider = 100     | Mover a 100                         | Brillo máximo                                                              | ✅         | [`slider_100.png`](./evidence/slider_100.png)                                                  |
+| 6   | TOGGLE LED 2     | Clic                                | GP14 cambia ON/OFF                                                         | ✅         | [`led2_on.png`](./evidence/led2_on.png)                                                        |
+| 7   | OLED             | Cambiar PWM y LED2                  | Refleja PWM y LED2                                                         | ✅         | [`oled_status.jpg`](./evidence/oled_status.jpg)                                                |
+| 8   | `/api/status`    | Abrir la ruta                       | JSON correcto                                                              | ✅         | [`api_status.png`](./evidence/api_status.png)                                                  |
+| 9   | PWM inválido     | `/api/pwm?value=150`                | Error 400                                                                  | ✅         | [`pwm_400.png`](./evidence/pwm_400.png)                                                        |
+| 10  | Ruta desconocida | `/api/ruta-que-no-existe`           | Error 404                                                                  | ✅         | [`error_404.png`](./evidence/error_404.png)                                                    |
+| B1  | Conexión         | Abrir el dashboard / apagar la Pico | Punto verde ONLINE / rojo SIN RESPUESTA; LED integrado encendido con Wi-Fi | ⚠️        | [`dashboard.png`](./evidence/dashboard.png)                                                    |
+| B2  | Ambos LEDs       | ALL ON / ALL OFF                    | GP15 al 100 % y GP14 ON / los dos apagados                                 | ✅         | [`video.mp4`](./evidence/video.mp4), [`wifi_ip.png`](./evidence/wifi_ip.png)                   |
+| B3  | NTP              | Arrancar con Internet               | Hora local correcta en la OLED, la página y `/api/status`                  | ✅         | [`oled_status.jpg`](./evidence/oled_status.jpg), [`api_status.png`](./evidence/api_status.png) |
+| B4  | ADC              | Mover el potenciómetro              | `adc` cambia en `/api/status`, la página y la OLED                         | ✅         | [`video.mp4`](./evidence/video.mp4)                                                            |
+
+Notas sobre la tabla:
+
+- **10:** la ruta que se probó fue `/api/ruta-que-no-existe`. Cualquier ruta fuera de la tabla de endpoints cae en el mismo `return` del 404; en la captura, DevTools muestra `HTTP/1.1 404 Not Found`.
+- **B1 (⚠️ parcial):** el punto verde **ONLINE** y el LED integrado encendido con Wi-Fi sí se ven (`dashboard.png`, `circuito.jpg`). El cambio a **SIN RESPUESTA** al desconectar la Pico no quedó capturado.
+- **B3:** `NTP OK | hora local: 14:01:02` en la terminal; la OLED (`14:05`) y `/api/status` (`"time": "14:05:40"`) coinciden con la hora de la laptop.
 
 Pantalla de la OLED:
 
@@ -132,17 +138,25 @@ El título de la OLED es `WIFI HMI` (el del TODO 3 del starter) y no `SMART WIFI
 
 ## 6. Problemas encontrados
 
-<!-- Llenar después de las pruebas en físico: qué falló y cómo se resolvió. -->
+La Pico se conectó al hotspot del celular (`rasp_challenge11`, 2.4 GHz). Los dos problemas que aparecieron fueron de Wi-Fi:
+
+| Problema | Causa | Solución |
+| -------- | ----- | -------- |
+| `Timeout Wi-Fi (status=-2)` | El SSID en `secrets.py` tenía un carácter de menos (`rasp_challenge1` en vez de `rasp_challenge11`). `-2` = `STAT_NO_AP_FOUND`: la Pico no encontraba esa red | Escaneé las redes desde la Pico con `wlan.scan()` y corregí el nombre |
+| `Timeout Wi-Fi (status=1)` | El hotspot estaba en **WPA3**. La Pico encontraba la red, pero se quedaba en `STAT_CONNECTING` sin autenticarse y sin reportar `-3` | Cambié la seguridad del hotspot a **WPA2-Personal** |
+
+El `status` del error fue lo que separó los dos casos: `-2` dice que la red no aparece y `1` que sí aparece pero el *handshake* nunca termina.
 
 ## 7. Conclusión
 
-<!-- Conclusión personal. -->
+Este reto es mi favorito la verdad. Hasta ahora, ver las cosas en el monitor serial de la computadora era una cosa, pero, poder verlo desde una OLED con tanto color y definición, fue muy chido. Además, juntarlo con la conexión a internet y hacerle peticiones desde la red igual estuvo genial. A pesar de que son cosas que ya habíamos hecho en otras materias, hacerlo con algo que directamente interactúas físicamente le da otro sentido. 
+Poniendo esto más técnico, este reto juntó en un solo programa lo de las sesiones anteriores: PWM, salidas digitales, ADC e I2C, ahora controlados desde el navegador. Lo que más sirvió fue ver que la Pico mantiene un solo estado (`pwm_percent`, `led2_state`, `request_count`) y que la página, la OLED y `/api/status` son tres vistas de esas mismas variables, haciendo que siempre coincidan. También entendí la diferencia entre un endpoint que regresa HTML para una persona y uno que regresa JSON para que `fetch()` actualice la página sin recargarla. Validar `value` antes de llamar a `set_pwm()` fue la diferencia entre un 400 claro y un 100 % silencioso. Del lado físico, el problema real no fue el código sino la red: el SSID y la seguridad WPA3 del hotspot (gracias Samsung por), y el `status` de `wlan` fue la pista para encontrarlo.
 
 ## Evidencias y cómo correrlo
 
 | Evidencia | Archivo |
 | --------- | ------- |
-| IP en Thonny | [`evidence/wifi_ip.png`](./evidence/wifi_ip.png) |
+| IP en la terminal (`mpremote`) | [`evidence/wifi_ip.png`](./evidence/wifi_ip.png) |
 | Dashboard | [`evidence/dashboard.png`](./evidence/dashboard.png) |
 | Slider en 37 % | [`evidence/slider_37.png`](./evidence/slider_37.png) |
 | Slider en 100 % | [`evidence/slider_100.png`](./evidence/slider_100.png) |
@@ -150,23 +164,34 @@ El título de la OLED es `WIFI HMI` (el del TODO 3 del starter) y no `SMART WIFI
 | OLED con el estado | [`evidence/oled_status.jpg`](./evidence/oled_status.jpg) |
 | `/api/status` | [`evidence/api_status.png`](./evidence/api_status.png) |
 | Error 404 | [`evidence/error_404.png`](./evidence/error_404.png) |
+| Error 400 (`value=150`) | [`evidence/pwm_400.png`](./evidence/pwm_400.png) |
+| Circuito armado | [`evidence/circuito.jpg`](./evidence/circuito.jpg) |
+| Video de la demo | [`evidence/video.mp4`](./evidence/video.mp4) |
 
 **Pico física (Pico 2 W + MicroPython):**
 
 1. Armar el circuito de la sección 1. Para el bonus del ADC, el potenciómetro va a 3V3, GND y GP26.
-2. Copiar `secrets_template.py`, poner el SSID y la contraseña reales y guardarlo en la **raíz** de la Pico con el nombre exacto `secrets.py` (Thonny: *Archivo → Guardar como → Raspberry Pi Pico*).
-3. Guardar `ssd1306.py` y `main.py` en la raíz de la Pico.
-4. Ejecutar `main.py`. Thonny imprime el scan I2C, la IP, el resultado de NTP y la URL: `Abre: http://192.168.x.x/`.
+2. Copiar `secrets_template.py` como `secrets.py` y poner el SSID y la contraseña reales.
+3. Subir los tres archivos a la **raíz** de la Pico y ejecutar `main.py` (desde la terminal de VS Code, con `mpremote`):
+
+   ```bash
+   mpremote connect /dev/ttyACM0 cp ssd1306.py secrets.py main.py :
+   mpremote run main.py
+   ```
+
+   También funciona con la extensión MicroPico (*Upload file to Pico* en cada archivo y ▶ *Run*) o con Thonny.
+4. La terminal imprime el scan I2C, la IP, el resultado de NTP y la URL: `Abre: http://192.168.x.x/`.
 5. Abrir esa URL **en la laptop conectada a la misma red**, escribiendo `http://` explícitamente.
 
-La red tiene que tener 2.4 GHz y no puede ser una red de invitados ni institucional con aislamiento de clientes; un hotspot donde se conecten la laptop y la Pico funciona.
+La red tiene que tener 2.4 GHz, seguridad **WPA2** (no WPA3) y no puede ser una red de invitados ni institucional con aislamiento de clientes; un hotspot donde se conecten la laptop y la Pico funciona.
 
 **Si algo no abre:**
 
 | Síntoma | Revisar |
 | ------- | ------- |
 | `RuntimeError: OLED 0x3c no detectada` | Cableado SDA/SCL/VCC/GND; si el scan muestra `0x3d`, cambiar `OLED_ADDR` |
-| `Timeout Wi-Fi` | SSID/contraseña en `secrets.py`, red de 2.4 GHz |
+| `Timeout Wi-Fi (status=-2)` | La Pico no ve la red: SSID mal escrito o red de 5 GHz |
+| `Timeout Wi-Fi (status=1)` o `(status=-3)` | Ve la red pero no se autentica: contraseña, o hotspot en WPA3 (cambiarlo a WPA2) |
 | Hay IP pero la página no abre | Misma red, sin VPN, `http://` y no `https://` |
 | La hora sale `--:--` | NTP no respondió (la red bloquea NTP o no hay Internet); el resto funciona igual y se reintenta cada 5 min |
 
@@ -180,4 +205,15 @@ Sesion_11_Smart_WiFi_HMI/
 ├── .gitignore            ← excluye secrets.py
 ├── README.md
 └── evidence/
+    ├── wifi_ip.png
+    ├── dashboard.png
+    ├── slider_37.png
+    ├── slider_100.png
+    ├── led2_on.png
+    ├── oled_status.jpg
+    ├── api_status.png
+    ├── error_404.png
+    ├── pwm_400.png       ← extra
+    ├── circuito.jpg      ← extra
+    └── video.mp4         ← extra
 ```
